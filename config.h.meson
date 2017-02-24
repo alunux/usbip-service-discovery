@@ -1,0 +1,167 @@
+/* Define to 1 if you have the <arpa/inet.h> header file. */
+#mesondefine HAVE_ARPA_INET_H
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#mesondefine HAVE_DIRENT_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#mesondefine HAVE_DLFCN_H
+
+/* Define to 1 if you have the `dnl' function. */
+#mesondefine HAVE_DNL
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#mesondefine HAVE_FCNTL_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#mesondefine HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <libusb-1.0/libusb.h> header file. */
+#mesondefine HAVE_LIBUSB_1_0_LIBUSB_H
+
+/* use tcp wrapper */
+#mesondefine HAVE_LIBWRAP
+
+/* Define to 1 if you have the <memory.h> header file. */
+#mesondefine HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#mesondefine HAVE_MEMSET
+
+/* Define to 1 if you have the `mkdir' function. */
+#mesondefine HAVE_MKDIR
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#mesondefine HAVE_NDIR_H
+
+/* Define to 1 if you have the <netdb.h> header file. */
+#mesondefine HAVE_NETDB_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#mesondefine HAVE_NETINET_IN_H
+
+/* Define to 1 if your system has a GNU libc compatible `realloc' function,
+   and to 0 otherwise. */
+#mesondefine HAVE_REALLOC
+
+/* Define to 1 if you have the `regcomp' function. */
+#mesondefine HAVE_REGCOMP
+
+/* Define to 1 if you have the `socket' function. */
+#mesondefine HAVE_SOCKET
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#mesondefine HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#mesondefine HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strchr' function. */
+#mesondefine HAVE_STRCHR
+
+/* Define to 1 if you have the `strerror' function. */
+#mesondefine HAVE_STRERROR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#mesondefine HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#mesondefine HAVE_STRING_H
+
+/* Define to 1 if you have the `strstr' function. */
+#mesondefine HAVE_STRSTR
+
+/* Define to 1 if you have the `strtoul' function. */
+#mesondefine HAVE_STRTOUL
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#mesondefine HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#mesondefine HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#mesondefine HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#mesondefine HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#mesondefine HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#mesondefine HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#mesondefine HAVE_UNISTD_H
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#mesondefine LT_OBJDIR
+
+/* Name of package */
+#mesondefine PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#mesondefine PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#mesondefine PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#mesondefine PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#mesondefine PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#mesondefine PACKAGE_URL
+
+/* Define to the version of this package. */
+#mesondefine PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#mesondefine STDC_HEADERS
+
+/* binary-coded decimal version number */
+#mesondefine USBIP_VERSION
+
+/* Version number of package */
+#mesondefine VERSION
+
+/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#mesondefine _UINT32_T
+
+/* Define for Solaris 2.5.1 so the uint8_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#mesondefine _UINT8_T
+
+/* Define to the type of a signed integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+#mesondefine int32_t
+
+/* Define to rpl_realloc if the replacement function should be used. */
+#mesondefine realloc
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#mesondefine size_t
+
+/* Define to `int' if <sys/types.h> does not define. */
+#mesondefine ssize_t
+
+/* Define to the type of an unsigned integer type of width exactly 16 bits if
+   such a type exists and the standard includes do not define it. */
+#mesondefine uint16_t
+
+/* Define to the type of an unsigned integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+#mesondefine uint32_t
+
+/* Define to the type of an unsigned integer type of width exactly 8 bits if
+   such a type exists and the standard includes do not define it. */
+#mesondefine uint8_t
