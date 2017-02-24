@@ -3,10 +3,12 @@ frontend_src = [
 ]
 
 frontend_requires = [
-    require_gtk3
+    require_frontend,
 ]
+
 
 executable(
     'main', frontend_src,
-    dependencies: frontend_requires
+    dependencies: frontend_requires,
+    link_with: utils_lib
 )
