@@ -1,0 +1,9 @@
+---
+BreakBeforeBraces: Linux
+ColumnLimit: 80
+IndentWidth: 4
+Language: Cpp
+Standard:        Cpp11
+TabWidth:        4
+UseTab:          Never
+...
