@@ -16,8 +16,45 @@
  */
 
 #include <gtk/gtk.h>
+
+#include <libudev.h>
+#include <sys/types.h>
+
+#include <errno.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "usbip.h"
+#include "usbip_common.h"
+
+typedef struct _usb_remote_info {
+    const char* path;
+    const char* idVendor;
+    const char* idProduct;
+    const char* bConfValue;
+    const char* bNumIntfs;
+    const char* busid;
+    const char* manufact;
+    const char* product_usb;
+    char product_name[128];
+} USBRemoteInfo;
+
+static void
+attach_usb_remote(GtkWidget* button, gpointer user_data)
+{
+    USBRemoteInfo* USBDevInfo = user_data;
+    printf("Attach: %s\n", USBDevInfo->product_usb);
+}
+
+static void
+detach_usb_remote(GtkWidget* button, gpointer user_data)
+{
+    USBRemoteInfo* USBDevInfo = user_data;
+    printf("Detach: %s\n", USBDevInfo->product_usb);
+}
 
 static GtkWidget*
 usbip_header_bar(const gchar* title)
@@ -48,32 +85,113 @@ usbip_header_bar(const gchar* title)
 }
 
 static GtkWidget*
-usb_devices_list()
+interface_list_local(GSList* usb_dev_list)
 {
     GtkWidget* devs_list = NULL;
+    GtkWidget* button_box = NULL;
     GtkWidget* devs_info = NULL;
     GtkWidget* button = NULL;
     GtkWidget* label = NULL;
     gchar* devs_desc = NULL;
+    GSList* iterator = NULL;
 
     devs_list = gtk_list_box_new();
 
-    /*
-    * Testing purpose
-    */
-    for (int i = 1; i < 10; i++) {
-        devs_info = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
-        devs_desc = g_strdup_printf("USB Device %i", i);
-        label = gtk_label_new(devs_desc);
-        button = gtk_button_new_with_label("Connect");
-        gtk_container_add(GTK_CONTAINER(devs_list), devs_info);
-        gtk_container_add(GTK_CONTAINER(devs_info), label);
-        gtk_container_add(GTK_CONTAINER(devs_info), button);
-        gtk_button_box_set_layout(GTK_BUTTON_BOX(devs_info),
-                                  GTK_BUTTONBOX_EDGE);
+    for (iterator = usb_dev_list; iterator; iterator = iterator->next) {
+        devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+        button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+        devs_desc =
+          g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\n"
+                          "Manufacturer: %s\nBUSID: %s\n",
+                          ((USBRemoteInfo*)iterator->data)->product_usb,
+                          ((USBRemoteInfo*)iterator->data)->idVendor,
+                          ((USBRemoteInfo*)iterator->data)->idProduct,
+                          ((USBRemoteInfo*)iterator->data)->manufact,
+                          ((USBRemoteInfo*)iterator->data)->busid);
+
+        label = gtk_label_new(NULL);
+        gtk_label_set_markup(GTK_LABEL(label), devs_desc);
+
+        button = gtk_button_new_with_label("Attach");
+        gtk_box_pack_start(GTK_BOX(button_box), button, FALSE, FALSE, 5);
+        g_signal_connect(button, "clicked", G_CALLBACK(attach_usb_remote),
+                         ((USBRemoteInfo*)iterator->data));
+
+        button = gtk_button_new_with_label("Dettach");
+        gtk_box_pack_start(GTK_BOX(button_box), button, FALSE, FALSE, 5);
+        g_signal_connect(button, "clicked", G_CALLBACK(detach_usb_remote),
+                         ((USBRemoteInfo*)iterator->data));
+
+        gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
+        gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
+        gtk_list_box_insert(GTK_LIST_BOX(devs_list), devs_info, 0);
+
+        g_free(devs_desc);
     }
-    g_free(devs_desc);
+
+    g_slist_free(usb_dev_list);
     return devs_list;
+}
+
+static GSList*
+usb_devices_list_local()
+{
+    GSList* usb_dev_list = NULL;
+
+    struct udev* udev;
+    struct udev_enumerate* enumerate;
+    struct udev_list_entry *devices, *dev_list_entry;
+    struct udev_device* dev;
+
+    udev = udev_new();
+    enumerate = udev_enumerate_new(udev);
+    udev_enumerate_add_match_subsystem(enumerate, "usb");
+    udev_enumerate_add_nomatch_sysattr(enumerate, "bDeviceClass", "09");
+    udev_enumerate_add_nomatch_sysattr(enumerate, "bInterfaceNumber", NULL);
+    udev_enumerate_scan_devices(enumerate);
+    devices = udev_enumerate_get_list_entry(enumerate);
+
+    udev_list_entry_foreach(dev_list_entry, devices)
+    {
+        USBRemoteInfo* USBDevInfo = g_new(USBRemoteInfo, 1);
+        USBDevInfo->path = udev_list_entry_get_name(dev_list_entry);
+        dev = udev_device_new_from_syspath(udev, USBDevInfo->path);
+
+        USBDevInfo->idVendor = udev_device_get_sysattr_value(dev, "idVendor");
+        USBDevInfo->idProduct = udev_device_get_sysattr_value(dev, "idProduct");
+        USBDevInfo->bConfValue =
+          udev_device_get_sysattr_value(dev, "bConfigurationValue");
+        USBDevInfo->bNumIntfs =
+          udev_device_get_sysattr_value(dev, "bNumInterfaces");
+        USBDevInfo->busid = udev_device_get_sysname(dev);
+        USBDevInfo->manufact =
+          udev_device_get_sysattr_value(dev, "manufacturer");
+        USBDevInfo->product_usb = udev_device_get_sysattr_value(dev, "product");
+
+        if (!USBDevInfo->idVendor || !USBDevInfo->idProduct ||
+            !USBDevInfo->bConfValue || !USBDevInfo->bNumIntfs) {
+            err("problem getting device attributes: %s", strerror(errno));
+            goto err_out;
+        }
+
+        usbip_names_get_product(USBDevInfo->product_name,
+                                sizeof(USBDevInfo->product_name),
+                                strtol(USBDevInfo->idVendor, NULL, 16),
+                                strtol(USBDevInfo->idProduct, NULL, 16));
+
+        usb_dev_list = g_slist_append(usb_dev_list, USBDevInfo);
+        // udev_device_unref(dev);
+    }
+
+    udev_enumerate_unref(enumerate);
+    udev_unref(udev);
+    return usb_dev_list;
+
+err_out:
+    udev_enumerate_unref(enumerate);
+    udev_unref(udev);
+    return NULL;
 }
 
 static GtkWidget*
@@ -90,17 +208,18 @@ main_window(GtkWidget* window)
         gtk_window_set_default_size(GTK_WINDOW(window), 600, 400);
         gtk_window_set_titlebar(GTK_WINDOW(window), header);
 
-        gtk_container_add(GTK_CONTAINER(window), usb_devices_list());
+        gtk_container_add(GTK_CONTAINER(window),
+                          interface_list_local(usb_devices_list_local()));
     }
     return window;
 }
 
 int
-main(int argc, char* argv[])
+main(void)
 {
     GtkWidget* window = NULL;
 
-    gtk_init(&argc, &argv);
+    gtk_init(0, NULL);
     window = main_window(window);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_widget_show_all(window);
