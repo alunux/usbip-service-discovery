@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2017 La Ode Muh. Fadlun Akbar <fadlun.net@gmail.com>
- *				 2011 matt mooney <mfm@muteddisk.com>
+ *               2011 matt mooney <mfm@muteddisk.com>
  *               2005-2007 Takahiro Hirofuchi
  *
  * This program is free software: you can redistribute it and/or modify
