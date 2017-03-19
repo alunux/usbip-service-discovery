@@ -15,17 +15,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gtk/gtk.h>
-
-#include <libudev.h>
-#include <sys/types.h>
-
 #include <errno.h>
+#include <gtk/gtk.h>
+#include <libudev.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "usbip.h"
 #include "usbip_common.h"
@@ -42,50 +40,52 @@ typedef struct _usb_remote_info {
     char product_name[128];
 } USBRemoteInfo;
 
-static void
-attach_usb_remote(GtkWidget* button, gpointer user_data)
+typedef struct _ui_usb_list {
+    GtkWidget* items;
+    GSList* list;
+    gboolean clear_state;
+} USBListInterface;
+
+static gboolean attach_usb_remote();
+static gboolean detach_usb_remote();
+static GSList* usb_devices_list_local();
+static void interface_list_local(GtkWidget* window, gpointer user_data);
+static GtkWidget* main_window(GtkWidget* window);
+
+static gboolean
+attach_usb_remote()
 {
-    USBRemoteInfo* USBDevInfo = user_data;
-    printf("Attach: %s\n", USBDevInfo->product_usb);
+    gboolean control_status = TRUE;
+    return control_status;
 }
 
-static void
-detach_usb_remote(GtkWidget* button, gpointer user_data)
+static gboolean
+detach_usb_remote()
 {
-    USBRemoteInfo* USBDevInfo = user_data;
-    printf("Detach: %s\n", USBDevInfo->product_usb);
-}
-
-static GtkWidget*
-usbip_header_bar(const gchar* title)
-{
-    GtkWidget* header = NULL;
-    GtkWidget* button = NULL;
-    GtkWidget* box = NULL;
-    GtkWidget* image = NULL;
-    GIcon* icon = NULL;
-
-    header = gtk_header_bar_new();
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);
-    gtk_header_bar_set_title(GTK_HEADER_BAR(header), title);
-    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header), FALSE);
-
-    button = gtk_button_new();
-    icon = g_themed_icon_new("view-refresh-symbolic");
-    image = gtk_image_new_from_gicon(icon, GTK_ICON_SIZE_BUTTON);
-    g_object_unref(icon);
-    gtk_container_add(GTK_CONTAINER(button), image);
-    gtk_header_bar_pack_end(GTK_HEADER_BAR(header), button);
-
-    box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_style_context_add_class(gtk_widget_get_style_context(box), "linked");
-
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(header), box);
-    return header;
+    gboolean control_status = TRUE;
+    return control_status;
 }
 
 static GtkWidget*
-interface_list_local(GSList* usb_dev_list)
+control_usb_remote(GtkWidget* button, gpointer user_data)
+{
+    USBRemoteInfo* USBDevInfo = (USBRemoteInfo*)user_data;
+    if (g_strcmp0(gtk_button_get_label(GTK_BUTTON(button)), "Attach") == 0) {
+        if (attach_usb_remote()) {
+            printf("Attach: %s\n", USBDevInfo->product_usb);
+            gtk_button_set_label(GTK_BUTTON(button), "Detach");
+        }
+    } else {
+        if (detach_usb_remote()) {
+            printf("Detach: %s\n", USBDevInfo->product_usb);
+            gtk_button_set_label(GTK_BUTTON(button), "Attach");
+        }
+    }
+    return button;
+}
+
+static void
+interface_list_local(GtkWidget* window, gpointer user_data)
 {
     GtkWidget* devs_list = NULL;
     GtkWidget* button_box = NULL;
@@ -95,9 +95,14 @@ interface_list_local(GSList* usb_dev_list)
     gchar* devs_desc = NULL;
     GSList* iterator = NULL;
 
+    USBListInterface* USBRefreshList = (USBListInterface*)user_data;
+
+    USBRefreshList->list = usb_devices_list_local();
+    window = USBRefreshList->items;
+
     devs_list = gtk_list_box_new();
 
-    for (iterator = usb_dev_list; iterator; iterator = iterator->next) {
+    for (iterator = USBRefreshList->list; iterator; iterator = iterator->next) {
         devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
@@ -114,13 +119,8 @@ interface_list_local(GSList* usb_dev_list)
         gtk_label_set_markup(GTK_LABEL(label), devs_desc);
 
         button = gtk_button_new_with_label("Attach");
-        gtk_box_pack_start(GTK_BOX(button_box), button, FALSE, FALSE, 5);
-        g_signal_connect(button, "clicked", G_CALLBACK(attach_usb_remote),
-                         ((USBRemoteInfo*)iterator->data));
-
-        button = gtk_button_new_with_label("Dettach");
-        gtk_box_pack_start(GTK_BOX(button_box), button, FALSE, FALSE, 5);
-        g_signal_connect(button, "clicked", G_CALLBACK(detach_usb_remote),
+        gtk_box_set_center_widget(GTK_BOX(button_box), button);
+        g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote),
                          ((USBRemoteInfo*)iterator->data));
 
         gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
@@ -130,8 +130,12 @@ interface_list_local(GSList* usb_dev_list)
         g_free(devs_desc);
     }
 
-    g_slist_free(usb_dev_list);
-    return devs_list;
+    if (gtk_bin_get_child(GTK_BIN(window)) == NULL) {
+        gtk_container_add(GTK_CONTAINER(window), devs_list);
+    } else {
+        gtk_widget_queue_draw(window);
+    }
+    gtk_widget_show_all(window);
 }
 
 static GSList*
@@ -198,20 +202,48 @@ static GtkWidget*
 main_window(GtkWidget* window)
 {
     GtkWidget* header = NULL;
+    GtkWidget* button = NULL;
+    GtkWidget* box = NULL;
+    GtkWidget* image = NULL;
+    GIcon* icon = NULL;
 
-    if (!window) {
-        window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        g_signal_connect(window, "destroy", G_CALLBACK(gtk_widget_destroyed),
-                         &window);
+    USBListInterface* USBRefreshList = g_new(USBListInterface, 1);
+    USBRefreshList->items = window;
+    USBRefreshList->list = NULL;
+    USBRefreshList->clear_state = TRUE;
 
-        header = usbip_header_bar("USB Device in Your Area - Skripsi");
-        gtk_window_set_default_size(GTK_WINDOW(window), 600, 400);
-        gtk_window_set_titlebar(GTK_WINDOW(window), header);
+    if (!USBRefreshList->items) {
+        USBRefreshList->items = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        g_signal_connect(USBRefreshList->items, "destroy",
+                         G_CALLBACK(gtk_widget_destroyed),
+                         &USBRefreshList->items);
 
-        gtk_container_add(GTK_CONTAINER(window),
-                          interface_list_local(usb_devices_list_local()));
+        header = gtk_header_bar_new();
+        gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);
+        gtk_header_bar_set_title(GTK_HEADER_BAR(header),
+                                 "USB Device in Your Area - Skripsi");
+        gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header), FALSE);
+
+        button = gtk_button_new();
+        icon = g_themed_icon_new("view-refresh-symbolic");
+        image = gtk_image_new_from_gicon(icon, GTK_ICON_SIZE_BUTTON);
+        g_object_unref(icon);
+        gtk_container_add(GTK_CONTAINER(button), image);
+        gtk_header_bar_pack_end(GTK_HEADER_BAR(header), button);
+
+        g_signal_connect(button, "clicked", G_CALLBACK(interface_list_local),
+                         USBRefreshList);
+
+        box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+        gtk_style_context_add_class(gtk_widget_get_style_context(box),
+                                    "linked");
+        gtk_header_bar_pack_start(GTK_HEADER_BAR(header), box);
+
+        gtk_window_set_titlebar(GTK_WINDOW(USBRefreshList->items), header);
+        gtk_window_set_default_size(GTK_WINDOW(USBRefreshList->items), 600,
+                                    400);
     }
-    return window;
+    return USBRefreshList->items;
 }
 
 int
