@@ -232,7 +232,7 @@ err_out:
 }
 
 int
-usbip_list()
+usbip_list(void)
 {
     int ret;
 

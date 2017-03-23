@@ -46,21 +46,21 @@ typedef struct _ui_usb_list {
     gboolean clear_state;
 } USBListInterface;
 
-static gboolean attach_usb_remote();
-static gboolean detach_usb_remote();
-static GSList* usb_devices_list_local();
+static gboolean attach_usb_remote(void);
+static gboolean detach_usb_remote(void);
+static GSList* usb_devices_list_local(void);
 static void interface_list_local(GtkWidget* window, gpointer user_data);
 static GtkWidget* main_window(GtkWidget* window);
 
 static gboolean
-attach_usb_remote()
+attach_usb_remote(void)
 {
     gboolean control_status = TRUE;
     return control_status;
 }
 
 static gboolean
-detach_usb_remote()
+detach_usb_remote(void)
 {
     gboolean control_status = TRUE;
     return control_status;
@@ -130,11 +130,15 @@ interface_list_local(GtkWidget* window, gpointer user_data)
         g_free(devs_desc);
     }
 
+    g_slist_free(USBRefreshList->list);
+
     if (gtk_bin_get_child(GTK_BIN(window)) == NULL) {
         gtk_container_add(GTK_CONTAINER(window), devs_list);
     } else {
         gtk_widget_queue_draw(window);
     }
+
+    printf("Refresh list\n");
     gtk_widget_show_all(window);
 }
 
@@ -185,7 +189,6 @@ usb_devices_list_local()
                                 strtol(USBDevInfo->idProduct, NULL, 16));
 
         usb_dev_list = g_slist_append(usb_dev_list, USBDevInfo);
-        // udev_device_unref(dev);
     }
 
     udev_enumerate_unref(enumerate);
