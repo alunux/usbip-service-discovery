@@ -6,6 +6,10 @@ sources = [
     'sysfs_utils.c',
 ]
 
+extra_cflags = [
+    '-Wno-variadic-macros',
+]
+
 deps = [
     require_libudev
 ]
@@ -14,6 +18,7 @@ ver = '0.1.0'
 
 usbiplibs = shared_library(
     'usbiplibs', sources,
+    c_args: extra_cflags,
     version : ver,
     dependencies : deps
 )
