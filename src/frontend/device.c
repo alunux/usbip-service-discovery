@@ -17,7 +17,6 @@
 
 #include "device.h"
 
-
 static void populate_usb_devices(void);
 int total_usb_device(void);
 static void cleanup_device_usage(void);
@@ -46,9 +45,7 @@ total_usb_device(void)
     int total = 0;
 
     populate_usb_devices();
-    udev_list_entry_foreach(dev_list_entry, devices) {
-        total++;
-    }
+    udev_list_entry_foreach(dev_list_entry, devices) { total++; }
 
     cleanup_device_usage();
     return total;
@@ -93,8 +90,10 @@ get_devices(void)
         USBDevInfo[index].path = udev_list_entry_get_name(dev_list_entry);
         dev = udev_device_new_from_syspath(udev, USBDevInfo[index].path);
 
-        USBDevInfo[index].idVendor = udev_device_get_sysattr_value(dev, "idVendor");
-        USBDevInfo[index].idProduct = udev_device_get_sysattr_value(dev, "idProduct");
+        USBDevInfo[index].idVendor =
+          udev_device_get_sysattr_value(dev, "idVendor");
+        USBDevInfo[index].idProduct =
+          udev_device_get_sysattr_value(dev, "idProduct");
         USBDevInfo[index].bConfValue =
           udev_device_get_sysattr_value(dev, "bConfigurationValue");
         USBDevInfo[index].bNumIntfs =
@@ -102,7 +101,8 @@ get_devices(void)
         USBDevInfo[index].busid = udev_device_get_sysname(dev);
         USBDevInfo[index].manufact =
           udev_device_get_sysattr_value(dev, "manufacturer");
-        USBDevInfo[index].product_usb = udev_device_get_sysattr_value(dev, "product");
+        USBDevInfo[index].product_usb =
+          udev_device_get_sysattr_value(dev, "product");
 
         if (!USBDevInfo[index].idVendor || !USBDevInfo[index].idProduct ||
             !USBDevInfo[index].bConfValue || !USBDevInfo[index].bNumIntfs) {

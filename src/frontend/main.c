@@ -25,9 +25,9 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include "device.h"
 #include "usbip.h"
 #include "usbip_common.h"
-#include "device.h"
 
 typedef struct _ui_usb_list {
     GtkWidget* items;
@@ -98,14 +98,13 @@ interface_list_local(GtkWidget* window, gpointer user_data)
         devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
-        devs_desc =
-          g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\n"
-                          "Manufacturer: %s\nBUSID: %s\n",
-                          ((UsbDevice*)iterator->data)->product_usb,
-                          ((UsbDevice*)iterator->data)->idVendor,
-                          ((UsbDevice*)iterator->data)->idProduct,
-                          ((UsbDevice*)iterator->data)->manufact,
-                          ((UsbDevice*)iterator->data)->busid);
+        devs_desc = g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\n"
+                                    "Manufacturer: %s\nBUSID: %s\n",
+                                    ((UsbDevice*)iterator->data)->product_usb,
+                                    ((UsbDevice*)iterator->data)->idVendor,
+                                    ((UsbDevice*)iterator->data)->idProduct,
+                                    ((UsbDevice*)iterator->data)->manufact,
+                                    ((UsbDevice*)iterator->data)->busid);
 
         label = gtk_label_new(NULL);
         gtk_label_set_markup(GTK_LABEL(label), devs_desc);
