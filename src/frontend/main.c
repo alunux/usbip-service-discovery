@@ -27,18 +27,7 @@
 
 #include "usbip.h"
 #include "usbip_common.h"
-
-typedef struct _usb_remote_info {
-    const char* path;
-    const char* idVendor;
-    const char* idProduct;
-    const char* bConfValue;
-    const char* bNumIntfs;
-    const char* busid;
-    const char* manufact;
-    const char* product_usb;
-    char product_name[128];
-} USBRemoteInfo;
+#include "device.h"
 
 typedef struct _ui_usb_list {
     GtkWidget* items;
@@ -48,7 +37,6 @@ typedef struct _ui_usb_list {
 
 static gboolean attach_usb_remote(void);
 static gboolean detach_usb_remote(void);
-static GSList* usb_devices_list_local(void);
 static void interface_list_local(GtkWidget* window, gpointer user_data);
 static GtkWidget* main_window(GtkWidget* window);
 
@@ -69,15 +57,19 @@ detach_usb_remote(void)
 static GtkWidget*
 control_usb_remote(GtkWidget* button, gpointer user_data)
 {
-    USBRemoteInfo* USBDevInfo = (USBRemoteInfo*)user_data;
+    UsbDevice* USBDevInfo = (UsbDevice*)user_data;
     if (g_strcmp0(gtk_button_get_label(GTK_BUTTON(button)), "Attach") == 0) {
         if (attach_usb_remote()) {
+            /* debugging purpose */
             printf("Attach: %s\n", USBDevInfo->product_usb);
+
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
         }
     } else {
         if (detach_usb_remote()) {
+            /* debugging purpose */
             printf("Detach: %s\n", USBDevInfo->product_usb);
+
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
         }
     }
@@ -97,7 +89,7 @@ interface_list_local(GtkWidget* window, gpointer user_data)
 
     USBListInterface* USBRefreshList = (USBListInterface*)user_data;
 
-    USBRefreshList->list = usb_devices_list_local();
+    USBRefreshList->list = usb_devices_list();
     window = USBRefreshList->items;
 
     devs_list = gtk_list_box_new();
@@ -109,11 +101,11 @@ interface_list_local(GtkWidget* window, gpointer user_data)
         devs_desc =
           g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\n"
                           "Manufacturer: %s\nBUSID: %s\n",
-                          ((USBRemoteInfo*)iterator->data)->product_usb,
-                          ((USBRemoteInfo*)iterator->data)->idVendor,
-                          ((USBRemoteInfo*)iterator->data)->idProduct,
-                          ((USBRemoteInfo*)iterator->data)->manufact,
-                          ((USBRemoteInfo*)iterator->data)->busid);
+                          ((UsbDevice*)iterator->data)->product_usb,
+                          ((UsbDevice*)iterator->data)->idVendor,
+                          ((UsbDevice*)iterator->data)->idProduct,
+                          ((UsbDevice*)iterator->data)->manufact,
+                          ((UsbDevice*)iterator->data)->busid);
 
         label = gtk_label_new(NULL);
         gtk_label_set_markup(GTK_LABEL(label), devs_desc);
@@ -121,11 +113,14 @@ interface_list_local(GtkWidget* window, gpointer user_data)
         button = gtk_button_new_with_label("Attach");
         gtk_box_set_center_widget(GTK_BOX(button_box), button);
         g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote),
-                         ((USBRemoteInfo*)iterator->data));
+                         ((UsbDevice*)iterator->data));
 
         gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
         gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
         gtk_list_box_insert(GTK_LIST_BOX(devs_list), devs_info, 0);
+
+        /* debugging purpose */
+        g_print("product: %s\n", ((UsbDevice*)iterator->data)->product_usb);
 
         g_free(devs_desc);
     }
@@ -138,67 +133,10 @@ interface_list_local(GtkWidget* window, gpointer user_data)
         gtk_widget_queue_draw(window);
     }
 
-    printf("Refresh list\n");
+    /* debugging purpose */
+    printf("Refresh list\n\n");
+
     gtk_widget_show_all(window);
-}
-
-static GSList*
-usb_devices_list_local()
-{
-    GSList* usb_dev_list = NULL;
-
-    struct udev* udev;
-    struct udev_enumerate* enumerate;
-    struct udev_list_entry *devices, *dev_list_entry;
-    struct udev_device* dev;
-
-    udev = udev_new();
-    enumerate = udev_enumerate_new(udev);
-    udev_enumerate_add_match_subsystem(enumerate, "usb");
-    udev_enumerate_add_nomatch_sysattr(enumerate, "bDeviceClass", "09");
-    udev_enumerate_add_nomatch_sysattr(enumerate, "bInterfaceNumber", NULL);
-    udev_enumerate_scan_devices(enumerate);
-    devices = udev_enumerate_get_list_entry(enumerate);
-
-    udev_list_entry_foreach(dev_list_entry, devices)
-    {
-        USBRemoteInfo* USBDevInfo = g_new(USBRemoteInfo, 1);
-        USBDevInfo->path = udev_list_entry_get_name(dev_list_entry);
-        dev = udev_device_new_from_syspath(udev, USBDevInfo->path);
-
-        USBDevInfo->idVendor = udev_device_get_sysattr_value(dev, "idVendor");
-        USBDevInfo->idProduct = udev_device_get_sysattr_value(dev, "idProduct");
-        USBDevInfo->bConfValue =
-          udev_device_get_sysattr_value(dev, "bConfigurationValue");
-        USBDevInfo->bNumIntfs =
-          udev_device_get_sysattr_value(dev, "bNumInterfaces");
-        USBDevInfo->busid = udev_device_get_sysname(dev);
-        USBDevInfo->manufact =
-          udev_device_get_sysattr_value(dev, "manufacturer");
-        USBDevInfo->product_usb = udev_device_get_sysattr_value(dev, "product");
-
-        if (!USBDevInfo->idVendor || !USBDevInfo->idProduct ||
-            !USBDevInfo->bConfValue || !USBDevInfo->bNumIntfs) {
-            err("problem getting device attributes: %s", strerror(errno));
-            goto err_out;
-        }
-
-        usbip_names_get_product(USBDevInfo->product_name,
-                                sizeof(USBDevInfo->product_name),
-                                strtol(USBDevInfo->idVendor, NULL, 16),
-                                strtol(USBDevInfo->idProduct, NULL, 16));
-
-        usb_dev_list = g_slist_append(usb_dev_list, USBDevInfo);
-    }
-
-    udev_enumerate_unref(enumerate);
-    udev_unref(udev);
-    return usb_dev_list;
-
-err_out:
-    udev_enumerate_unref(enumerate);
-    udev_unref(udev);
-    return NULL;
 }
 
 static GtkWidget*
