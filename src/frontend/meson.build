@@ -1,5 +1,6 @@
 frontend_src = [
     'main.c',
+    'device.c',
 ]
 
 frontend_requires = [
