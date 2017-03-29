@@ -1,6 +1,15 @@
+nekofi_res = gnome.compile_resources(
+  'nekofi-res', 'nekofi.gresource.xml',
+  source_dir : '.',
+  c_name : 'nekofi'
+)
+
 frontend_src = [
     'main.c',
     'device.c',
+    'nekofi.c',
+    'nekofiwin.c',
+    nekofi_res,
 ]
 
 frontend_requires = [
