@@ -29,16 +29,10 @@
 #include "usbip.h"
 #include "usbip_common.h"
 
-typedef struct _ui_usb_list {
-    GtkWidget* items;
-    GSList* list;
-    gboolean clear_state;
-} USBListInterface;
-
 static gboolean attach_usb_remote(void);
 static gboolean detach_usb_remote(void);
-static void interface_list_local(GtkWidget* window, gpointer user_data);
-static GtkWidget* main_window(GtkWidget* window);
+static GtkWidget* interface_list_local(GtkWidget* widget, gpointer user_data);
+static void main_window(GtkApplication* window, gpointer user_data);
 
 static gboolean
 attach_usb_remote(void)
@@ -76,25 +70,25 @@ control_usb_remote(GtkWidget* button, gpointer user_data)
     return button;
 }
 
-static void
-interface_list_local(GtkWidget* window, gpointer user_data)
+static GtkWidget*
+interface_list_local(GtkWidget* widget, gpointer user_data)
 {
+    GtkWidget* window = NULL;
     GtkWidget* devs_list = NULL;
     GtkWidget* button_box = NULL;
     GtkWidget* devs_info = NULL;
     GtkWidget* button = NULL;
     GtkWidget* label = NULL;
     gchar* devs_desc = NULL;
+    GSList* usb_list = NULL;
     GSList* iterator = NULL;
+    GList *children, *iter;
 
-    USBListInterface* USBRefreshList = (USBListInterface*)user_data;
-
-    USBRefreshList->list = usb_devices_list();
-    window = USBRefreshList->items;
-
+    window = (GtkWidget*)user_data;
+    usb_list = usb_devices_list();
     devs_list = gtk_list_box_new();
 
-    for (iterator = USBRefreshList->list; iterator; iterator = iterator->next) {
+    for (iterator = usb_list; iterator; iterator = iterator->next) {
         devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
@@ -124,78 +118,79 @@ interface_list_local(GtkWidget* window, gpointer user_data)
         g_free(devs_desc);
     }
 
-    g_slist_free(USBRefreshList->list);
-
-    if (gtk_bin_get_child(GTK_BIN(window)) == NULL) {
-        gtk_container_add(GTK_CONTAINER(window), devs_list);
-    } else {
-        gtk_widget_queue_draw(window);
-    }
-
+    gtk_container_add(GTK_CONTAINER(window), devs_list);
+    g_slist_free(usb_list);
     /* debugging purpose */
     printf("Refresh list\n\n");
-
-    gtk_widget_show_all(window);
+    return devs_list;
 }
 
-static GtkWidget*
-main_window(GtkWidget* window)
+static void
+refresh_list(GtkWidget* button, gpointer user_data)
 {
+    GtkWidget* refresh = (GtkWidget*)user_data;
+    GList *children, *iter;
+
+    children = gtk_container_get_children(GTK_CONTAINER(refresh));
+    g_print("total widget = %d\n", g_list_length(children));
+    if (children != NULL) {
+        for (iter = children; iter != NULL; iter = g_list_next(iter)) {
+            gtk_widget_destroy(GTK_WIDGET(iter->data));
+        }
+
+        g_list_free(children);
+    }
+}
+
+static void
+main_window(GtkApplication* app, gpointer user_data)
+{
+    GtkWidget* window = NULL;
     GtkWidget* header = NULL;
     GtkWidget* button = NULL;
     GtkWidget* box = NULL;
     GtkWidget* image = NULL;
+    GtkWidget* list = NULL;
     GIcon* icon = NULL;
+    gulong handler_id;
 
-    USBListInterface* USBRefreshList = g_new(USBListInterface, 1);
-    USBRefreshList->items = window;
-    USBRefreshList->list = NULL;
-    USBRefreshList->clear_state = TRUE;
+    window = gtk_application_window_new(app);
 
-    if (!USBRefreshList->items) {
-        USBRefreshList->items = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        g_signal_connect(USBRefreshList->items, "destroy",
-                         G_CALLBACK(gtk_widget_destroyed),
-                         &USBRefreshList->items);
+    header = gtk_header_bar_new();
+    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);
+    gtk_header_bar_set_title(GTK_HEADER_BAR(header),
+                             "USB Device in Your Area - Skripsi");
+    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header), FALSE);
 
-        header = gtk_header_bar_new();
-        gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);
-        gtk_header_bar_set_title(GTK_HEADER_BAR(header),
-                                 "USB Device in Your Area - Skripsi");
-        gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header), FALSE);
+    button = gtk_button_new();
+    icon = g_themed_icon_new("view-refresh-symbolic");
+    image = gtk_image_new_from_gicon(icon, GTK_ICON_SIZE_BUTTON);
+    g_object_unref(icon);
+    gtk_container_add(GTK_CONTAINER(button), image);
+    gtk_header_bar_pack_end(GTK_HEADER_BAR(header), button);
 
-        button = gtk_button_new();
-        icon = g_themed_icon_new("view-refresh-symbolic");
-        image = gtk_image_new_from_gicon(icon, GTK_ICON_SIZE_BUTTON);
-        g_object_unref(icon);
-        gtk_container_add(GTK_CONTAINER(button), image);
-        gtk_header_bar_pack_end(GTK_HEADER_BAR(header), button);
+    box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_style_context_add_class(gtk_widget_get_style_context(box), "linked");
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header), box);
 
-        g_signal_connect(button, "clicked", G_CALLBACK(interface_list_local),
-                         USBRefreshList);
+    gtk_window_set_titlebar(GTK_WINDOW(window), header);
+    gtk_window_set_default_size(GTK_WINDOW(window), 600, 400);
 
-        box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-        gtk_style_context_add_class(gtk_widget_get_style_context(box),
-                                    "linked");
-        gtk_header_bar_pack_start(GTK_HEADER_BAR(header), box);
-
-        gtk_window_set_titlebar(GTK_WINDOW(USBRefreshList->items), header);
-        gtk_window_set_default_size(GTK_WINDOW(USBRefreshList->items), 600,
-                                    400);
-    }
-    return USBRefreshList->items;
+    list = interface_list_local(NULL, window);
+    g_signal_connect(button, "clicked", G_CALLBACK(refresh_list), window);
+    gtk_widget_show_all(window);
 }
 
 int
-main(void)
+main(int argc, char* argv[])
 {
-    GtkWidget* window = NULL;
+    GtkApplication* app = NULL;
+    int status = 0;
 
-    gtk_init(0, NULL);
-    window = main_window(window);
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-    gtk_widget_show_all(window);
-    gtk_main();
+    app = gtk_application_new("org.alunux.usbip", G_APPLICATION_FLAGS_NONE);
+    g_signal_connect(app, "activate", G_CALLBACK(main_window), NULL);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
+    g_object_unref(app);
 
-    return EXIT_SUCCESS;
+    return status;
 }
