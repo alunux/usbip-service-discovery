@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.8 -->
+  <template class="NekoFiWindow" parent="GtkApplicationWindow">
+    <property name="title" translatable="yes">NekoFi</property>
+    <property name="default-width">600</property>
+    <property name="default-height">400</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header">
+          <property name="title">USB Device in Your Area - Skripsi</property>
+          <property name="visible">True</property>
+          <property name="show-close-button">True</property>
+          <property name="has-subtitle">False</property>
+          <child>
+              <object class="GtkButton" id="scan_button">
+                  <property name="visible">True</property>
+                  <style>
+                      <class name="image-button"/>
+                  </style>
+                  <child>
+                      <object class="GtkImage" id="scan_icon">
+                          <property name="visible">True</property>
+                          <property name="icon-name">view-refresh-symbolic</property>
+                          <property name="icon-size">1</property>
+                      </object>
+                  </child>
+              </object>
+              <packing>
+                  <property name="pack-type">end</property>
+              </packing>
+          </child>
+      </object>
+    </child>
+  </template>
+</interface>
