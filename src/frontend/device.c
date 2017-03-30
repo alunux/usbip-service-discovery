@@ -58,6 +58,12 @@ cleanup_device_usage(void)
     udev_unref(udev);
 }
 
+void
+finish_dev_usage(struct udev_device* dev)
+{
+    udev_device_unref(dev);
+}
+
 GSList*
 usb_devices_list(void)
 {
@@ -80,29 +86,28 @@ get_devices(void)
 {
     int index = 0;
     int total = 0;
-    struct udev_device* dev;
 
     total = total_usb_device();
     populate_usb_devices();
-    UsbDevice* USBDevInfo = (UsbDevice*)malloc(total * sizeof(UsbDevice));
+    UsbDevice* USBDevInfo = (UsbDevice*)g_malloc(total * sizeof(UsbDevice));
     udev_list_entry_foreach(dev_list_entry, devices)
     {
         USBDevInfo[index].path = udev_list_entry_get_name(dev_list_entry);
-        dev = udev_device_new_from_syspath(udev, USBDevInfo[index].path);
+        USBDevInfo[index].dev = udev_device_new_from_syspath(udev, USBDevInfo[index].path);
 
         USBDevInfo[index].idVendor =
-          udev_device_get_sysattr_value(dev, "idVendor");
+          udev_device_get_sysattr_value(USBDevInfo[index].dev, "idVendor");
         USBDevInfo[index].idProduct =
-          udev_device_get_sysattr_value(dev, "idProduct");
+          udev_device_get_sysattr_value(USBDevInfo[index].dev, "idProduct");
         USBDevInfo[index].bConfValue =
-          udev_device_get_sysattr_value(dev, "bConfigurationValue");
+          udev_device_get_sysattr_value(USBDevInfo[index].dev, "bConfigurationValue");
         USBDevInfo[index].bNumIntfs =
-          udev_device_get_sysattr_value(dev, "bNumInterfaces");
-        USBDevInfo[index].busid = udev_device_get_sysname(dev);
+          udev_device_get_sysattr_value(USBDevInfo[index].dev, "bNumInterfaces");
+        USBDevInfo[index].busid = udev_device_get_sysname(USBDevInfo[index].dev);
         USBDevInfo[index].manufact =
-          udev_device_get_sysattr_value(dev, "manufacturer");
+          udev_device_get_sysattr_value(USBDevInfo[index].dev, "manufacturer");
         USBDevInfo[index].product_usb =
-          udev_device_get_sysattr_value(dev, "product");
+          udev_device_get_sysattr_value(USBDevInfo[index].dev, "product");
 
         if (!USBDevInfo[index].idVendor || !USBDevInfo[index].idProduct ||
             !USBDevInfo[index].bConfValue || !USBDevInfo[index].bNumIntfs) {

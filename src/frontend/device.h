@@ -40,9 +40,11 @@ typedef struct _UsbDevice {
     const char* busid;
     const char* manufact;
     const char* product_usb;
+    struct udev_device* dev;
 } UsbDevice;
 
 GSList* usb_devices_list(void);
 int total_usb_device(void);
+void finish_dev_usage(struct udev_device* dev);
 
 #endif /* DEVICE_H */
