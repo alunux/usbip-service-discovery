@@ -49,5 +49,10 @@
           </child>
       </object>
     </child>
+    <child>
+        <object class="GtkListBox" id="scan_result">
+            <property name="visible">True</property>
+        </object>
+    </child>
   </template>
 </interface>
