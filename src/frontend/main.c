@@ -23,5 +23,12 @@
 int
 main(int argc, char* argv[])
 {
-    return g_application_run(G_APPLICATION(neko_fi_new()), argc, argv);
+    NekoFi* app = NULL;
+    int status = 0;
+
+    app = neko_fi_new();
+    g_application_run(G_APPLICATION(app), argc, argv);
+    g_object_unref(app);
+
+    return status;
 }
