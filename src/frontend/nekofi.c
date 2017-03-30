@@ -39,13 +39,8 @@ neko_fi_activate(GApplication *app)
     NekoFiWindow *win = NULL;
 
     win = neko_fi_window_new(NEKO_FI(app));
+    neko_fi_window_scan(win);
     gtk_window_present(GTK_WINDOW(win));
-}
-
-static void
-neko_fi_scan(GApplication *app, UsbDevice *list)
-{
-    NekoFiWindow *win = NULL;
 }
 
 static void
@@ -59,6 +54,6 @@ neko_fi_new(void)
 {
     return g_object_new(NEKO_FI_TYPE,
                         "application-id", "org.alunux.nekofi",
-                        "flags", NULL,
+                        "flags", G_APPLICATION_FLAGS_NONE,
                         NULL);
 }
