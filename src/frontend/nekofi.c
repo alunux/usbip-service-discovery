@@ -17,26 +17,25 @@
 
 #include <gtk/gtk.h>
 
+#include "device.h"
 #include "nekofi.h"
 #include "nekofiwin.h"
-#include "device.h"
 
-struct _NekoFi
-{
+struct _NekoFi {
     GtkApplication parent;
 };
 
 G_DEFINE_TYPE(NekoFi, neko_fi, GTK_TYPE_APPLICATION);
 
 static void
-neko_fi_init(NekoFi *app)
+neko_fi_init(NekoFi* app)
 {
 }
 
 static void
-neko_fi_activate(GApplication *app)
+neko_fi_activate(GApplication* app)
 {
-    NekoFiWindow *win = NULL;
+    NekoFiWindow* win = NULL;
 
     win = neko_fi_window_new(NEKO_FI(app));
     neko_fi_window_scan(win);
@@ -44,7 +43,7 @@ neko_fi_activate(GApplication *app)
 }
 
 static void
-neko_fi_class_init(NekoFiClass *class)
+neko_fi_class_init(NekoFiClass* class)
 {
     G_APPLICATION_CLASS(class)->activate = neko_fi_activate;
 }
@@ -52,8 +51,6 @@ neko_fi_class_init(NekoFiClass *class)
 NekoFi*
 neko_fi_new(void)
 {
-    return g_object_new(NEKO_FI_TYPE,
-                        "application-id", "org.alunux.nekofi",
-                        "flags", G_APPLICATION_FLAGS_NONE,
-                        NULL);
+    return g_object_new(NEKO_FI_TYPE, "application-id", "org.alunux.nekofi",
+                        "flags", G_APPLICATION_FLAGS_NONE, NULL);
 }

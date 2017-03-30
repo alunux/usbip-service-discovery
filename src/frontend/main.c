@@ -19,7 +19,6 @@
 
 #include "nekofi.h"
 
-
 int
 main(int argc, char* argv[])
 {
@@ -27,7 +26,7 @@ main(int argc, char* argv[])
     int status = 0;
 
     app = neko_fi_new();
-    g_application_run(G_APPLICATION(app), argc, argv);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
 
     return status;
