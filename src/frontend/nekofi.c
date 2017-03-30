@@ -25,7 +25,7 @@ struct _NekoFi {
     GtkApplication parent;
 };
 
-G_DEFINE_TYPE(NekoFi, neko_fi, GTK_TYPE_APPLICATION);
+G_DEFINE_TYPE(NekoFi, neko_fi, GTK_TYPE_APPLICATION)
 
 static void
 neko_fi_init(NekoFi* app)
