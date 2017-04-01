@@ -59,7 +59,7 @@ cleanup_device_usage(void)
 }
 
 void
-finish_dev_usage(GSList *free_list)
+finish_dev_usage(GSList* free_list)
 {
     GSList* iter_items = NULL;
 

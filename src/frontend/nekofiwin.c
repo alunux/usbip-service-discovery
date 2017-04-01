@@ -31,7 +31,6 @@ struct _NekoFiWindowPrivate {
     GSList* scan_items;
 };
 
-
 G_DEFINE_TYPE_WITH_PRIVATE(NekoFiWindow, neko_fi_window,
                            GTK_TYPE_APPLICATION_WINDOW)
 
