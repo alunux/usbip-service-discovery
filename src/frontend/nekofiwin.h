@@ -23,6 +23,7 @@
 #include <gtk/gtk.h>
 
 #define NEKO_FI_WINDOW_TYPE (neko_fi_window_get_type())
+
 G_DECLARE_FINAL_TYPE(NekoFiWindow, neko_fi_window, NEKO, FI_WINDOW,
                      GtkApplicationWindow)
 

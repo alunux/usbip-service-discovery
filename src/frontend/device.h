@@ -45,6 +45,6 @@ typedef struct _UsbDevice {
 
 GSList* usb_devices_list(void);
 int total_usb_device(void);
-void finish_dev_usage(struct udev_device* dev);
+void finish_dev_usage(GSList* free_list);
 
 #endif /* DEVICE_H */

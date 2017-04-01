@@ -59,9 +59,16 @@ cleanup_device_usage(void)
 }
 
 void
-finish_dev_usage(struct udev_device* dev)
+finish_dev_usage(GSList *free_list)
 {
-    udev_device_unref(dev);
+    GSList* iter_items = NULL;
+
+    for (iter_items = free_list; iter_items != NULL;
+         iter_items = g_slist_next(iter_items)) {
+        udev_device_unref(((UsbDevice*)iter_items->data)->dev);
+    }
+
+    g_free(free_list->data);
 }
 
 GSList*
