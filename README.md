@@ -16,5 +16,5 @@ It's still under development, nothing is useful here.
 ### Screenshot
 
 <p align=center>
-![gui](https://github.com/alunux/usbip-gui-utils/raw/master/.github/screenshots/main.png)
+    <img src="https://github.com/alunux/usbip-gui-utils/raw/master/.github/screenshots/main.png">
 </p>
