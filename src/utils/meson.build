@@ -31,16 +31,16 @@ extra_inc = [
 ]
 
 
-utils_lib = shared_library(
-    'utils_lib', utils_src,
+libusbip_util = shared_library(
+    'libusbip_util', utils_src,
     dependencies: utils_requires,
     include_directories: include_directories(extra_inc),
-    link_with: usbiplibs,
+    link_with: libusbip,
 )
 
 executable(
     'tes', tes_src,
     dependencies: utils_requires,
     include_directories: include_directories(extra_inc),
-    link_with: utils_lib,
+    link_with: libusbip_util,
 )
