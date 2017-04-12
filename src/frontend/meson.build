@@ -44,5 +44,5 @@ executable(
     c_args: frontend_cflags,
     include_directories: include_directories(extra_incl),
     dependencies: frontend_requires,
-    link_with: utils_lib,
+    link_with: libusbip_util,
 )
