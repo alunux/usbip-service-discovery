@@ -17,7 +17,7 @@
 
 #include "device.h"
 
-static void populate_usb_devices(void);
+static int populate_usb_devices(void);
 int total_usb_device(void);
 static void cleanup_device_usage(void);
 GSList* usb_devices_list(void);
@@ -27,16 +27,33 @@ struct udev* udev;
 struct udev_enumerate* enumerate;
 struct udev_list_entry *devices, *dev_list_entry;
 
-static void
+static int
 populate_usb_devices(void)
 {
     udev = udev_new();
+    if (udev == NULL) {
+        printf("failed to allocate a new udev context object\n");
+        return 1;
+    }
+
     enumerate = udev_enumerate_new(udev);
+    if (enumerate == NULL) {
+        printf("failed to point to allocated udev monitor\n");
+        return 2;
+    }
+
     udev_enumerate_add_match_subsystem(enumerate, "usb");
     udev_enumerate_add_nomatch_sysattr(enumerate, "bDeviceClass", "09");
     udev_enumerate_add_nomatch_sysattr(enumerate, "bInterfaceNumber", NULL);
     udev_enumerate_scan_devices(enumerate);
+
     devices = udev_enumerate_get_list_entry(enumerate);
+    if (devices == NULL) {
+        printf("No USB device found, or fail to get list devices\n");
+        return 3;
+    }
+
+    return 0;
 }
 
 int
@@ -44,7 +61,10 @@ total_usb_device(void)
 {
     int total = 0;
 
-    populate_usb_devices();
+    if (populate_usb_devices() != 0) {
+        return 0;
+    }
+
     udev_list_entry_foreach(dev_list_entry, devices) { total++; }
 
     cleanup_device_usage();
