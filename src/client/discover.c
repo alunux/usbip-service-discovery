@@ -25,55 +25,60 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define LISTENERPORT 13000
+#define NEKOFI_CAST_ADDR "225.10.10.1"
+#define LISTENPORT 10296
+#define MAXBUFLEN 128
 
 int
 main(int argc, char* argv[])
 {
+    struct in_addr LocalIface;
+    struct sockaddr_in NekoFiGroupSock;
+
+    int status;
     int sockfd;
-    int numbytes;
-    int broadcast = 1;
-    int ret = 0;
-    struct sockaddr_in client_addr;
-    struct hostent* hostname;
+    int socklen;
+    char databuf[MAXBUFLEN];
 
-    if (argc != 3) {
-        fprintf(stderr, "usage: client hostname message\n");
-        exit(1);
-    }
-
-    hostname = gethostbyname(argv[1]);
-    if (hostname == NULL) {
-        perror("failed to get hostname");
-        exit(1);
-    }
+    memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd == -1) {
+    if (sockfd < 0) {
         perror("failed to create socket");
         exit(1);
     }
 
-    ret = setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast,
-                     sizeof(broadcast));
-    if (ret == -1) {
-        perror("can't setup setsockopt(SO_BROADCAST)");
+    NekoFiGroupSock.sin_family = AF_INET;
+    NekoFiGroupSock.sin_port = htons(LISTENPORT);
+    NekoFiGroupSock.sin_addr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
+
+    {
+        char reuse = '0';
+        if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse,
+                       sizeof(reuse)) < 0) {
+            perror("setting IP_MULTICAST_LOOP");
+            close(sockfd);
+            exit(1);
+        }
+    }
+
+    LocalIface.s_addr = inet_addr("192.168.122.1");
+    if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&LocalIface,
+                   sizeof(LocalIface)) < 0) {
+        perror("setting local interface");
         exit(1);
     }
 
-    client_addr.sin_family = AF_INET;
-    client_addr.sin_port = htons(LISTENERPORT);
-    client_addr.sin_addr = *((struct in_addr*)hostname->h_addr);
-    memset(client_addr.sin_zero, '\0', sizeof(client_addr.sin_zero));
+    strcpy(databuf, "Halo NekoFi");
 
-    numbytes = sendto(sockfd, argv[2], strlen(argv[2]), 0,
-                      (struct sockaddr*)&client_addr, sizeof(client_addr));
-    if (numbytes == -1) {
-        perror("can't sendto the broadcast address");
-        exit(1);
-    }
+    socklen = sizeof(NekoFiGroupSock);
+    status = sendto(sockfd, databuf, strlen(databuf), 0,
+                    (struct sockaddr*)&NekoFiGroupSock, socklen);
 
-    printf("sent %d bytes to %s\n", numbytes, inet_ntoa(client_addr.sin_addr));
+    printf("databuf = %s\n", databuf);
+    printf("sent %d bytes to %s\n", status,
+           inet_ntoa(NekoFiGroupSock.sin_addr));
+    shutdown(sockfd, SHUT_RDWR);
     close(sockfd);
 
     return EXIT_SUCCESS;
