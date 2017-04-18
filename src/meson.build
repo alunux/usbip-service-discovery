@@ -1,3 +1,3 @@
 subdir('libs')
 subdir('utils')
-subdir('frontend')
+subdir('client')
