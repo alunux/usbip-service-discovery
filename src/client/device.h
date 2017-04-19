@@ -28,9 +28,6 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "usbip.h"
-#include "usbip_common.h"
-
 typedef struct _UsbDevice {
     const char* path;
     const char* idVendor;
