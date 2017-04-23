@@ -16,17 +16,38 @@
  */
 
 #include <arpa/inet.h>
+#include <net/if.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "device.h"
+
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10296
 #define MAXBUFLEN 128
+
+static const char*
+get_iface_addr(const char* iface_name)
+{
+    int fd;
+    struct ifreq ifr;
+
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
+    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
+
+    ioctl(fd, SIOCGIFADDR, &ifr);
+    close(fd);
+
+    return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
+}
 
 int
 main(int argc, char* argv[])
@@ -36,8 +57,12 @@ main(int argc, char* argv[])
 
     int status;
     int sockfd;
-    int socklen;
+    socklen_t socklen;
     char databuf[MAXBUFLEN];
+    char datarecv[MAXBUFLEN];
+
+    GSList* usb_list = NULL;
+    GSList* iterator = NULL;
 
     memset(&LocalSock, 0, sizeof(LocalSock));
     memset(&NekoFiGroup, 0, sizeof(NekoFiGroup));
@@ -70,7 +95,7 @@ main(int argc, char* argv[])
     }
 
     NekoFiGroup.imr_multiaddr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
-    NekoFiGroup.imr_interface.s_addr = INADDR_ANY;
+    NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr("ens3"));
 
     if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&NekoFiGroup,
                    sizeof(NekoFiGroup)) < 0) {
@@ -79,12 +104,35 @@ main(int argc, char* argv[])
         exit(1);
     }
 
-    socklen = sizeof(LocalSock);
-    status = recvfrom(sockfd, databuf, MAXBUFLEN, 0,
-                      (struct sockaddr*)&LocalSock, &socklen);
+    while (1) {
+        usb_list = usb_devices_list();
+        for (iterator = usb_list; iterator != NULL; iterator = iterator->next) {
+            snprintf(databuf, sizeof(databuf), "%s",
+                     ((UsbDevice*)iterator->data)->manufact);
+        }
 
-    databuf[status] = '\0';
-    printf("%s\n", databuf);
+        finish_dev_usage(usb_list);
+        g_slist_free(usb_list);
+
+        printf("NekoFi server: listening on %s...\n", get_iface_addr("ens3"));
+        socklen = sizeof(LocalSock);
+        status = recvfrom(sockfd, datarecv, MAXBUFLEN, 0,
+                          (struct sockaddr*)&LocalSock, &socklen);
+
+        if (status < 0) {
+            perror("recvfrom");
+        } else {
+            printf("received %d bytes from %s\n", status,
+                   inet_ntoa(LocalSock.sin_addr));
+            printf("NekoFi server: packet is %d bytes\n", status);
+            databuf[status] = '\0';
+            printf("NekoFi server: packet contains \"%s\"\n", datarecv);
+            status = sendto(sockfd, databuf, strlen(databuf), 0,
+                            (struct sockaddr*)&LocalSock, socklen);
+        }
+        printf("\n");
+    }
+
     shutdown(sockfd, SHUT_RDWR);
     close(sockfd);
 
