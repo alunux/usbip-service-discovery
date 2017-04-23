@@ -113,7 +113,8 @@ get_devices(void)
 {
     int index = 0;
     int total = 0;
-    char* ret = NULL;
+    const char* ret_manufact;
+    const char* ret_product;
 
     total = total_usb_device();
     populate_usb_devices();
@@ -135,17 +136,18 @@ get_devices(void)
         USBDevInfo[index].busid =
           udev_device_get_sysname(USBDevInfo[index].dev);
 
-        ret =
+        ret_manufact =
           udev_device_get_sysattr_value(USBDevInfo[index].dev, "manufacturer");
-        if (ret != NULL) {
-            USBDevInfo[index].manufact = ret;
+        if (ret_manufact != NULL) {
+            USBDevInfo[index].manufact = ret_manufact;
         } else {
             USBDevInfo[index].manufact = "Unknown Manucfaturer";
         }
 
-        ret = udev_device_get_sysattr_value(USBDevInfo[index].dev, "product");
-        if (ret != NULL) {
-            USBDevInfo[index].product_usb = ret;
+        ret_product =
+          udev_device_get_sysattr_value(USBDevInfo[index].dev, "product");
+        if (ret_product != NULL) {
+            USBDevInfo[index].product_usb = ret_product;
         } else {
             USBDevInfo[index].product_usb = "Unknown Product";
         }
