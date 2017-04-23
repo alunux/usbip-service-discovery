@@ -53,5 +53,5 @@ executable(
 
 executable(
     'discover', discover_src,
-    c_args: frontend_cflags,s
+    c_args: frontend_cflags,
 )
