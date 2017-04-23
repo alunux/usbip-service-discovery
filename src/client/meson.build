@@ -12,6 +12,10 @@ frontend_src = [
     nekofi_res,
 ]
 
+discover_src = [
+    'discover.c',
+]
+
 frontend_requires = [
     require_frontend,
     require_libudev,
@@ -45,4 +49,9 @@ executable(
     include_directories: include_directories(extra_incl),
     dependencies: frontend_requires,
     link_with: libusbip_util,
+)
+
+executable(
+    'discover', discover_src,
+    c_args: frontend_cflags,s
 )
