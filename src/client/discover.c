@@ -18,10 +18,12 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -35,10 +37,16 @@ main(int argc, char* argv[])
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
 
+    struct timeval time_val;
+    time_val.tv_sec = 1;
+    time_val.tv_usec = 0;
+
     int status;
     int sockfd;
     int socklen;
     char databuf[MAXBUFLEN];
+
+    pid_t pid;
 
     memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
 
@@ -69,17 +77,36 @@ main(int argc, char* argv[])
         exit(1);
     }
 
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&time_val,sizeof(struct timeval)) < 0) {
+        perror("setting socket timeout");
+        exit(1);
+    }
+
     strcpy(databuf, "Halo NekoFi");
 
     socklen = sizeof(NekoFiGroupSock);
     status = sendto(sockfd, databuf, strlen(databuf), 0,
                     (struct sockaddr*)&NekoFiGroupSock, socklen);
 
-    printf("databuf = %s\n", databuf);
-    printf("sent %d bytes to %s\n", status,
-           inet_ntoa(NekoFiGroupSock.sin_addr));
-    shutdown(sockfd, SHUT_RDWR);
-    close(sockfd);
+    while(1) {
+        memset(databuf, '\0', MAXBUFLEN);
+        status = recvfrom(sockfd, databuf, MAXBUFLEN, 0,
+                          (struct sockaddr*)&NekoFiGroupSock, &socklen);
+
+        if (status < 0) {
+            close(sockfd);
+            break;
+        }
+
+        pid = fork();
+        if (pid == 0) {
+            printf("received %d bytes from %s\n", status,
+                   inet_ntoa(NekoFiGroupSock.sin_addr));
+            printf("databuf from server = %s\n", databuf);
+            close(sockfd);
+            exit(0);
+        }
+    }
 
     return EXIT_SUCCESS;
 }
