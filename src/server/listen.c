@@ -30,7 +30,7 @@
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10296
-#define MAXBUFLEN 128
+#define HW_IFACE_NAME "ens3"
 
 static const char*
 get_iface_addr(const char* iface_name)
@@ -57,12 +57,8 @@ main(int argc, char* argv[])
 
     int status;
     int sockfd;
+    int ack = 1;
     socklen_t socklen;
-    char databuf[MAXBUFLEN];
-    char datarecv[MAXBUFLEN];
-
-    GSList* usb_list = NULL;
-    GSList* iterator = NULL;
 
     memset(&LocalSock, 0, sizeof(LocalSock));
     memset(&NekoFiGroup, 0, sizeof(NekoFiGroup));
@@ -95,7 +91,7 @@ main(int argc, char* argv[])
     }
 
     NekoFiGroup.imr_multiaddr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
-    NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr("ens3"));
+    NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr(HW_IFACE_NAME));
 
     if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&NekoFiGroup,
                    sizeof(NekoFiGroup)) < 0) {
@@ -105,18 +101,9 @@ main(int argc, char* argv[])
     }
 
     while (1) {
-        usb_list = usb_devices_list();
-        for (iterator = usb_list; iterator != NULL; iterator = iterator->next) {
-            snprintf(databuf, sizeof(databuf), "%s",
-                     ((UsbDevice*)iterator->data)->manufact);
-        }
-
-        finish_dev_usage(usb_list);
-        g_slist_free(usb_list);
-
-        printf("NekoFi server: listening on %s...\n", get_iface_addr("ens3"));
+        printf("NekoFi server: listening on %s...\n", get_iface_addr(HW_IFACE_NAME));
         socklen = sizeof(LocalSock);
-        status = recvfrom(sockfd, datarecv, MAXBUFLEN, 0,
+        status = recvfrom(sockfd, &ack, sizeof(ack), 0,
                           (struct sockaddr*)&LocalSock, &socklen);
 
         if (status < 0) {
@@ -125,9 +112,8 @@ main(int argc, char* argv[])
             printf("received %d bytes from %s\n", status,
                    inet_ntoa(LocalSock.sin_addr));
             printf("NekoFi server: packet is %d bytes\n", status);
-            databuf[status] = '\0';
-            printf("NekoFi server: packet contains \"%s\"\n", datarecv);
-            status = sendto(sockfd, databuf, strlen(databuf), 0,
+            printf("NekoFi server: packet contains \"%d\"\n", ack);
+            status = sendto(sockfd, &ack, sizeof(ack), 0,
                             (struct sockaddr*)&LocalSock, socklen);
         }
         printf("\n");
