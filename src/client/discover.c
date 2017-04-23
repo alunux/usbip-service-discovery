@@ -77,7 +77,8 @@ main(int argc, char* argv[])
         exit(1);
     }
 
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&time_val,sizeof(struct timeval)) < 0) {
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&time_val,
+                   sizeof(struct timeval)) < 0) {
         perror("setting socket timeout");
         exit(1);
     }
@@ -88,7 +89,7 @@ main(int argc, char* argv[])
     status = sendto(sockfd, databuf, strlen(databuf), 0,
                     (struct sockaddr*)&NekoFiGroupSock, socklen);
 
-    while(1) {
+    while (1) {
         memset(databuf, '\0', MAXBUFLEN);
         status = recvfrom(sockfd, databuf, MAXBUFLEN, 0,
                           (struct sockaddr*)&NekoFiGroupSock, &socklen);
