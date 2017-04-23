@@ -2,6 +2,7 @@ project('skripsi-labora', 'c', default_options: 'c_std=gnu11', version : '2.0')
 gnome = import('gnome')
 require_frontend = dependency('gtk+-3.0')
 require_libudev = dependency('libudev')
+require_glib = dependency('glib-2.0')
 
 am_cppflags = [
     '-DUSBIDS_FILE="/usr/share/hwdata/usb.ids"'
