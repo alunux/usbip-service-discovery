@@ -33,17 +33,6 @@
 #include "usbip_network.h"
 #include "vhci_driver.h"
 
-static const char usbip_attach_usage_string[] =
-  "usbip attach <args>\n"
-  "    -r, --remote=<host>      The machine with exported USB devices\n"
-  "    -b, --busid=<busid>    Busid of the device on <host>\n";
-
-void
-usbip_attach_usage(void)
-{
-    printf("usage: %s", usbip_attach_usage_string);
-}
-
 #define MAX_BUFF 100
 static int
 record_connection(char* host, char* port, char* busid, int rhport)
@@ -202,45 +191,13 @@ attach_device(char* host, char* busid)
     return 0;
 }
 
+/* pass parameter address nad busid */
 int
-usbip_attach(int argc, char* argv[])
+usbip_attach(void)
 {
-    static const struct option opts[] = {
-        { "remote", required_argument, NULL, 'r' },
-        { "busid", required_argument, NULL, 'b' },
-        { NULL, 0, NULL, 0 }
-    };
-    char* host = NULL;
-    char* busid = NULL;
-    int opt;
-    int ret = -1;
-
-    for (;;) {
-        opt = getopt_long(argc, argv, "r:b:", opts, NULL);
-
-        if (opt == -1)
-            break;
-
-        switch (opt) {
-            case 'r':
-                host = optarg;
-                break;
-            case 'b':
-                busid = optarg;
-                break;
-            default:
-                goto err_out;
-        }
-    }
-
-    if (!host || !busid)
-        goto err_out;
-
+    int ret = 0;
+    const char* host = "192.168.1.7";
+    const char* busid = "2-1";
     ret = attach_device(host, busid);
-    goto out;
-
-err_out:
-    usbip_attach_usage();
-out:
     return ret;
 }

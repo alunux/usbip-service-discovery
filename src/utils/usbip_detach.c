@@ -22,8 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <getopt.h>
 #include <unistd.h>
 
 #include "usbip.h"
@@ -31,17 +29,7 @@
 #include "usbip_network.h"
 #include "vhci_driver.h"
 
-static const char usbip_detach_usage_string[] =
-  "usbip detach <args>\n"
-  "    -p, --port=<port>    " USBIP_VHCI_DRV_NAME " port the device is on\n";
-
-void
-usbip_detach_usage(void)
-{
-    printf("usage: %s", usbip_detach_usage_string);
-}
-
-static int
+int
 detach_port(char* port)
 {
     int ret;
@@ -79,35 +67,5 @@ detach_port(char* port)
 
     usbip_vhci_driver_close();
 
-    return ret;
-}
-
-int
-usbip_detach(int argc, char* argv[])
-{
-    static const struct option opts[] = {
-        { "port", required_argument, NULL, 'p' }, { NULL, 0, NULL, 0 }
-    };
-    int opt;
-    int ret = -1;
-
-    for (;;) {
-        opt = getopt_long(argc, argv, "p:", opts, NULL);
-
-        if (opt == -1)
-            break;
-
-        switch (opt) {
-            case 'p':
-                ret = detach_port(optarg);
-                goto out;
-            default:
-                goto err_out;
-        }
-    }
-
-err_out:
-    usbip_detach_usage();
-out:
     return ret;
 }

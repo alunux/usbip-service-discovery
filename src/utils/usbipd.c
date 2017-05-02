@@ -51,7 +51,7 @@
 
 #define DEFAULT_PID_FILE "/var/run/" PROGNAME ".pid"
 
-static const char usbip_version_string[] = PACKAGE_STRING;
+static const char usbip_version_string[] = "usbip-utils 2.0";
 
 static const char usbipd_help_string[] =
   "usage: usbipd [options]\n"
