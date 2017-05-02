@@ -33,6 +33,47 @@
 #define LISTENPORT 10296
 #define HW_IFACE_NAME "virbr0"
 
+static int
+recv_usb_list_json(char node_addr[])
+{
+    int sockfd = 0, n = 0;
+    char recvBuff[1024];
+    struct sockaddr_in serv_addr;
+
+    memset(recvBuff, '0', sizeof(recvBuff));
+    memset(&serv_addr, '0', sizeof(serv_addr));
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(5000);
+
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("recv_data: socket");
+        exit(1);
+    }
+
+    if (inet_pton(AF_INET, node_addr, &serv_addr.sin_addr) <= 0) {
+        perror("recv_data: inet_pton");
+        exit(1);
+    }
+
+    if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("recv_data: connect");
+        exit(1);
+    }
+
+    n = recv(sockfd, recvBuff, sizeof(recvBuff) - 1, 0);
+    if (n < 0) {
+        perror("recv_data: recv");
+        exit(1);
+    }
+
+    recvBuff[n] = '\0';
+    printf("recv_data: %s from %s\n", recvBuff, node_addr);
+    close(sockfd);
+
+    return 0;
+}
+
 static const char*
 get_iface_addr(const char* iface_name)
 {
@@ -63,6 +104,7 @@ main(int argc, char* argv[])
     int status;
     int sockfd;
     int ack = 1;
+    char* node_addr;
     socklen_t socklen;
 
     pid_t pid;
@@ -118,9 +160,10 @@ main(int argc, char* argv[])
 
         pid = fork();
         if (pid == 0) {
-            printf("received %d bytes from %s\n", status,
-                   inet_ntoa(NekoFiGroupSock.sin_addr));
+            node_addr = inet_ntoa(NekoFiGroupSock.sin_addr);
+            printf("received %d bytes from %s\n", status, node_addr);
             printf("ack from server = %d\n", ack);
+            recv_usb_list_json(node_addr);
             close(sockfd);
             exit(0);
         }
