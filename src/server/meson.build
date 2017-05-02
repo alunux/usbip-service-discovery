@@ -8,6 +8,10 @@ server_requires = [
     require_glib,
 ]
 
+send_data_src = [
+    'send_data.c',
+]
+
 server_cflags = [
     '-O2',
     '-D_FORTIFY_SOURCE=2',
@@ -29,4 +33,9 @@ executable(
     'listen', server_src,
     c_args: server_cflags,
     dependencies: server_requires,
+)
+
+executable(
+    'send_data', send_data_src,
+    c_args: server_cflags,
 )
