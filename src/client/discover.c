@@ -16,8 +16,8 @@
  */
 
 #include <arpa/inet.h>
-#include <netdb.h>
 #include <net/if.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
 #include <stdio.h>
@@ -106,6 +106,7 @@ main(int argc, char* argv[])
     status = sendto(sockfd, &ack, sizeof(ack), 0,
                     (struct sockaddr*)&NekoFiGroupSock, socklen);
 
+    int n_node = 0;
     while (1) {
         status = recvfrom(sockfd, &ack, sizeof(ack), 0,
                           (struct sockaddr*)&NekoFiGroupSock, &socklen);
@@ -123,7 +124,10 @@ main(int argc, char* argv[])
             close(sockfd);
             exit(0);
         }
+        n_node++;
     }
+
+    printf("Total NekoFi node: %d\n", n_node);
 
     return EXIT_SUCCESS;
 }
