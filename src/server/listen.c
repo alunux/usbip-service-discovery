@@ -101,7 +101,8 @@ main(int argc, char* argv[])
     }
 
     while (1) {
-        printf("NekoFi server: listening on %s...\n", get_iface_addr(HW_IFACE_NAME));
+        printf("NekoFi server: listening on %s...\n",
+               get_iface_addr(HW_IFACE_NAME));
         socklen = sizeof(LocalSock);
         status = recvfrom(sockfd, &ack, sizeof(ack), 0,
                           (struct sockaddr*)&LocalSock, &socklen);
