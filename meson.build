@@ -3,6 +3,7 @@ gnome = import('gnome')
 require_frontend = dependency('gtk+-3.0')
 require_libudev = dependency('libudev')
 require_glib = dependency('glib-2.0')
+require_json = dependency('json-c')
 
 am_cppflags = [
     '-DUSBIDS_FILE="/usr/share/hwdata/usb.ids"'

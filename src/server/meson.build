@@ -5,11 +5,12 @@ server_src = [
 
 server_requires = [
     require_libudev,
-    require_glib,
+    require_json,
 ]
 
 send_data_src = [
     'send_data.c',
+    'device.c',
 ]
 
 server_cflags = [
@@ -38,4 +39,5 @@ executable(
 executable(
     'send_data', send_data_src,
     c_args: server_cflags,
+    dependencies: server_requires,
 )

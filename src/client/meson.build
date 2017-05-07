@@ -16,13 +16,10 @@ discover_src = [
     'discover.c',
 ]
 
-recv_data_src = [
-    'recv_data.c',
-]
-
 frontend_requires = [
     require_frontend,
     require_libudev,
+    require_json,
 ]
 
 frontend_cflags = [
@@ -58,9 +55,5 @@ executable(
 executable(
     'discover', discover_src,
     c_args: frontend_cflags,
-)
-
-executable(
-    'recv_data', recv_data_src,
-    c_args: frontend_cflags,
+    dependencies: frontend_requires,
 )
