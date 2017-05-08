@@ -12,6 +12,7 @@ It's still under development, nothing is useful here.
 - libudev >= 229
 - glib-2.0 >= 2.44.0
 - gtk+-3.0 >= 3.18.0
+- json-c >= 0.11
 
 ### Screenshot
 
