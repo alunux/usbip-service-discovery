@@ -16,6 +16,7 @@
  */
 
 #include <arpa/inet.h>
+#include <json.h>
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -27,24 +28,34 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
+#define JSON_PORT 10796
 #define LISTENPORT 10296
 #define HW_IFACE_NAME "virbr0"
 
+/*
+    TODO:
+    This function must return json_object or JSON string
+    to parent proccess and store the value to linked list data
+    structure. The data will be used by NekoFi GUI proccess.
+*/
 static int
-recv_usb_list_json(char node_addr[])
+recv_usb_list_json(char node_addr[], size_t json_size)
 {
     int sockfd = 0, n = 0;
-    char recvBuff[1024];
+    char* recvBuff = (char*)malloc(json_size + 1);
     struct sockaddr_in serv_addr;
 
-    memset(recvBuff, '0', sizeof(recvBuff));
+    json_object* usb_json;
+
+    memset(recvBuff, '0', json_size + 1);
     memset(&serv_addr, '0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(5000);
+    serv_addr.sin_port = htons(JSON_PORT);
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("recv_data: socket");
@@ -61,14 +72,34 @@ recv_usb_list_json(char node_addr[])
         exit(1);
     }
 
-    n = recv(sockfd, recvBuff, sizeof(recvBuff) - 1, 0);
+    n = recv(sockfd, recvBuff, json_size + 1, 0);
     if (n < 0) {
         perror("recv_data: recv");
         exit(1);
     }
 
     recvBuff[n] = '\0';
-    printf("recv_data: %s from %s\n", recvBuff, node_addr);
+
+    usb_json = json_tokener_parse(recvBuff);
+
+    /* debugging purpose */
+    printf("%s\n",
+           json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_SPACED |
+                                                      JSON_C_TO_STRING_PRETTY));
+
+    json_object_object_foreach(usb_json, key, val)
+    {
+        if (json_object_get_type(val) == json_type_object) {
+            json_object_object_foreach(val, key1, val1)
+            {
+                printf("%s = %s\n", key1, json_object_get_string(val1));
+            }
+        }
+        printf("\n");
+    }
+
+    free(recvBuff);
+    json_object_put(usb_json);
     close(sockfd);
 
     return 0;
@@ -98,8 +129,8 @@ main(int argc, char* argv[])
     struct sockaddr_in NekoFiGroupSock;
 
     struct timeval time_val;
-    time_val.tv_sec = 1;
-    time_val.tv_usec = 0;
+    time_val.tv_sec = 0;
+    time_val.tv_usec = 100000;
 
     int status;
     int sockfd;
@@ -149,8 +180,10 @@ main(int argc, char* argv[])
                     (struct sockaddr*)&NekoFiGroupSock, socklen);
 
     int n_node = 0;
+    size_t json_size;
+
     while (1) {
-        status = recvfrom(sockfd, &ack, sizeof(ack), 0,
+        status = recvfrom(sockfd, &json_size, sizeof(json_size), 0,
                           (struct sockaddr*)&NekoFiGroupSock, &socklen);
 
         if (status < 0) {
@@ -161,15 +194,16 @@ main(int argc, char* argv[])
         pid = fork();
         if (pid == 0) {
             node_addr = inet_ntoa(NekoFiGroupSock.sin_addr);
-            printf("received %d bytes from %s\n", status, node_addr);
-            printf("ack from server = %d\n", ack);
-            recv_usb_list_json(node_addr);
+            printf("FROM %s: received json_size %lu bytes\n", node_addr,
+                   json_size);
+            recv_usb_list_json(node_addr, json_size);
             close(sockfd);
             exit(0);
         }
         n_node++;
     }
 
+    /* debugging purpose */
     printf("Total NekoFi node: %d\n", n_node);
 
     return EXIT_SUCCESS;
