@@ -55,5 +55,5 @@ executable(
 executable(
     'discover', discover_src,
     c_args: frontend_cflags,
-    dependencies: frontend_requires,
+    dependencies: require_json,
 )
