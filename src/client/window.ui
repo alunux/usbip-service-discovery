@@ -51,8 +51,15 @@
       </object>
     </child>
     <child>
-        <object class="GtkListBox" id="scan_result">
-            <property name="visible">True</property>
+        <object class="GtkScrolledWindow" id="scrolled">
+        <property name="visible">True</property>
+        <property name="hscrollbar-policy">GTK_POLICY_NEVER</property>
+        <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
+            <child>
+                <object class="GtkListBox" id="scan_result">
+                    <property name="visible">True</property>
+                </object>
+            </child>
         </object>
     </child>
   </template>
