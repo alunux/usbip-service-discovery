@@ -18,10 +18,7 @@
 #include "device.h"
 
 static int populate_usb_devices(void);
-int total_usb_device(void);
 static void cleanup_device_usage(void);
-GSList* usb_devices_list(void);
-static UsbDevice* get_devices(void);
 
 struct udev* udev;
 struct udev_enumerate* enumerate;
@@ -78,93 +75,76 @@ cleanup_device_usage(void)
     udev_unref(udev);
 }
 
-void
-finish_dev_usage(GSList* free_list)
+json_object*
+get_devices(const char node_addr[])
 {
-    GSList* iter_items = NULL;
+    struct udev_device* dev;
 
-    for (iter_items = free_list; iter_items != NULL;
-         iter_items = g_slist_next(iter_items)) {
-        udev_device_unref(((UsbDevice*)iter_items->data)->dev);
-    }
+    json_object* usb_root_json = NULL;
+    json_object* usb_contain_json = NULL;
+    json_object* usb_item_json = NULL;
 
-    g_free(free_list->data);
-}
+    const char* ret_path;
+    const char* ret_attr;
 
-GSList*
-usb_devices_list(void)
-{
-    GSList* usb_dev_list = NULL;
-    UsbDevice* usb_list = NULL;
-    int total = 0;
+    usb_root_json = json_object_new_object();
+    usb_contain_json = json_object_new_array();
 
-    total = total_usb_device();
-    usb_list = get_devices();
+    json_object_object_add(usb_root_json, node_addr, usb_contain_json);
 
-    for (int i = 0; i < total; i++) {
-        usb_dev_list = g_slist_append(usb_dev_list, (usb_list + i));
-    }
-
-    return usb_dev_list;
-}
-
-static UsbDevice*
-get_devices(void)
-{
-    int index = 0;
-    int total = 0;
-    const char* ret_manufact;
-    const char* ret_product;
-
-    total = total_usb_device();
     populate_usb_devices();
-    UsbDevice* USBDevInfo = (UsbDevice*)g_malloc(total * sizeof(UsbDevice));
     udev_list_entry_foreach(dev_list_entry, devices)
     {
-        USBDevInfo[index].path = udev_list_entry_get_name(dev_list_entry);
-        USBDevInfo[index].dev =
-          udev_device_new_from_syspath(udev, USBDevInfo[index].path);
+        ret_path = udev_list_entry_get_name(dev_list_entry);
+        dev = udev_device_new_from_syspath(udev, ret_path);
 
-        USBDevInfo[index].idVendor =
-          udev_device_get_sysattr_value(USBDevInfo[index].dev, "idVendor");
-        USBDevInfo[index].idProduct =
-          udev_device_get_sysattr_value(USBDevInfo[index].dev, "idProduct");
-        USBDevInfo[index].bConfValue = udev_device_get_sysattr_value(
-          USBDevInfo[index].dev, "bConfigurationValue");
-        USBDevInfo[index].bNumIntfs = udev_device_get_sysattr_value(
-          USBDevInfo[index].dev, "bNumInterfaces");
-        USBDevInfo[index].busid =
-          udev_device_get_sysname(USBDevInfo[index].dev);
+        usb_item_json = json_object_new_object();
 
-        ret_manufact =
-          udev_device_get_sysattr_value(USBDevInfo[index].dev, "manufacturer");
-        if (ret_manufact != NULL) {
-            USBDevInfo[index].manufact = ret_manufact;
+        json_object_object_add(usb_item_json, "path",
+                               json_object_new_string(ret_path));
+
+        ret_attr = udev_device_get_sysattr_value(dev, "idVendor");
+        json_object_object_add(usb_item_json, "idVendor",
+                               json_object_new_string(ret_attr));
+
+        ret_attr = udev_device_get_sysattr_value(dev, "idProduct");
+        json_object_object_add(usb_item_json, "idProduct",
+                               json_object_new_string(ret_attr));
+
+        ret_attr = udev_device_get_sysattr_value(dev, "bConfigurationValue");
+        json_object_object_add(usb_item_json, "bConfValue",
+                               json_object_new_string(ret_attr));
+
+        ret_attr = udev_device_get_sysattr_value(dev, "bNumInterfaces");
+        json_object_object_add(usb_item_json, "bNumIntfs",
+                               json_object_new_string(ret_attr));
+
+        ret_attr = udev_device_get_sysname(dev);
+        json_object_object_add(usb_item_json, "busid",
+                               json_object_new_string(ret_attr));
+
+        ret_attr = udev_device_get_sysattr_value(dev, "manufacturer");
+        if (ret_attr != NULL) {
+            json_object_object_add(usb_item_json, "manufact",
+                                   json_object_new_string(ret_attr));
         } else {
-            USBDevInfo[index].manufact = "Unknown Manucfaturer";
+            json_object_object_add(usb_item_json, "manufact",
+                                   json_object_new_string("Unknown"));
         }
 
-        ret_product =
-          udev_device_get_sysattr_value(USBDevInfo[index].dev, "product");
-        if (ret_product != NULL) {
-            USBDevInfo[index].product_usb = ret_product;
+        ret_attr = udev_device_get_sysattr_value(dev, "product");
+        if (ret_attr != NULL) {
+            json_object_object_add(usb_item_json, "product",
+                                   json_object_new_string(ret_attr));
         } else {
-            USBDevInfo[index].product_usb = "Unknown Product";
+            json_object_object_add(usb_item_json, "product",
+                                   json_object_new_string("Unknown"));
         }
 
-        if (!USBDevInfo[index].idVendor || !USBDevInfo[index].idProduct ||
-            !USBDevInfo[index].bConfValue || !USBDevInfo[index].bNumIntfs) {
-            perror("problem getting device attributes");
-            goto err_out;
-        }
-
-        index++;
+        json_object_array_add(usb_contain_json, usb_item_json);
+        udev_device_unref(dev);
     }
 
     cleanup_device_usage();
-    return USBDevInfo;
-
-err_out:
-    cleanup_device_usage();
-    return NULL;
+    return usb_root_json;
 }

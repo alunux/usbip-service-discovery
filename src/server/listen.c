@@ -50,10 +50,12 @@ get_iface_addr(const char* iface_name)
 }
 
 int
-main(int argc, char* argv[])
+main(void)
 {
     struct sockaddr_in LocalSock;
     struct ip_mreq NekoFiGroup;
+
+    json_object* usb_json = NULL;
 
     int status;
     int sockfd;
@@ -80,7 +82,7 @@ main(int argc, char* argv[])
     }
 
     LocalSock.sin_family = AF_INET;
-    LocalSock.sin_port = htons(10296);
+    LocalSock.sin_port = htons(LISTENPORT);
     LocalSock.sin_addr.s_addr = htonl(INADDR_ANY);
 
     status = bind(sockfd, (struct sockaddr*)&LocalSock, sizeof(LocalSock));
@@ -100,6 +102,7 @@ main(int argc, char* argv[])
         exit(1);
     }
 
+    size_t json_size;
     while (1) {
         printf("NekoFi server: listening on %s...\n",
                get_iface_addr(HW_IFACE_NAME));
@@ -110,12 +113,16 @@ main(int argc, char* argv[])
         if (status < 0) {
             perror("recvfrom");
         } else {
+            usb_json = get_devices(get_iface_addr(HW_IFACE_NAME));
+            json_size = strlen(
+              json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN));
             printf("received %d bytes from %s\n", status,
                    inet_ntoa(LocalSock.sin_addr));
             printf("NekoFi server: packet is %d bytes\n", status);
             printf("NekoFi server: packet contains \"%d\"\n", ack);
-            status = sendto(sockfd, &ack, sizeof(ack), 0,
+            status = sendto(sockfd, &json_size, sizeof(json_size), 0,
                             (struct sockaddr*)&LocalSock, socklen);
+            json_object_put(usb_json);
         }
         printf("\n");
     }

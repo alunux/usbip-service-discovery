@@ -17,6 +17,7 @@
 
 #include <arpa/inet.h>
 #include <errno.h>
+#include <json.h>
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -30,6 +31,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include "device.h"
+
+#define JSON_PORT 10796
+#define HW_IFACE_NAME "ens3"
 
 static void
 sigchld_handler(int s)
@@ -58,20 +64,20 @@ get_iface_addr(const char* iface_name)
 }
 
 int
-main(int argc, char* argv[])
+main(void)
 {
     int sockfd = 0, connfd = 0, status = 0;
     struct sockaddr_in serv_addr;
     struct sigaction sa;
 
-    char sendBuff[1025];
+    json_object* usb_json = NULL;
+    const char* temp_json;
 
     memset(&serv_addr, '0', sizeof(serv_addr));
-    memset(sendBuff, '0', sizeof(sendBuff));
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(5000);
+    serv_addr.sin_port = htons(JSON_PORT);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
@@ -108,7 +114,15 @@ main(int argc, char* argv[])
         exit(1);
     }
 
-    const char* usb_dev_json = "JSON Data";
+    usb_json = get_devices(get_iface_addr(HW_IFACE_NAME));
+    temp_json =
+      json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN);
+    size_t json_size = strlen(temp_json);
+    char* usb_dev_json = (char*)malloc(json_size);
+    strncpy(usb_dev_json, temp_json, json_size);
+
+    json_object_put(usb_json);
+
     printf("send_data: waiting for calling...\n");
 
     while (1) {
@@ -121,7 +135,7 @@ main(int argc, char* argv[])
         if (!fork()) {
             close(sockfd);
 
-            status = send(connfd, usb_dev_json, strlen(usb_dev_json), 0);
+            status = send(connfd, usb_dev_json, json_size, 0);
             if (status < 0) {
                 perror("send_data: send");
             }
@@ -131,5 +145,8 @@ main(int argc, char* argv[])
         }
         close(connfd);
     }
+
+    free(usb_dev_json);
+
     return EXIT_SUCCESS;
 }
