@@ -36,13 +36,19 @@
 #define LISTENPORT 10296
 #define HW_IFACE_NAME "virbr0"
 
+
+typedef struct _node_addr {
+    char addr[16];
+    size_t jsize;
+} node_addr;
+
 /*
     TODO:
     This function must return json_object or JSON string
     to parent proccess and store the value to linked list data
     structure. The data will be used by NekoFi GUI proccess.
 */
-static int
+static json_object*
 recv_usb_list_json(char node_addr[], size_t json_size)
 {
     int sockfd = 0, n = 0;
@@ -51,7 +57,7 @@ recv_usb_list_json(char node_addr[], size_t json_size)
 
     json_object* usb_json;
 
-    memset(recvBuff, '0', json_size + 1);
+    memset(recvBuff, '\0', json_size + 1);
     memset(&serv_addr, '0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
@@ -78,31 +84,12 @@ recv_usb_list_json(char node_addr[], size_t json_size)
         exit(1);
     }
 
-    recvBuff[n] = '\0';
-
     usb_json = json_tokener_parse(recvBuff);
 
-    /* debugging purpose */
-    printf("%s\n",
-           json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_SPACED |
-                                                      JSON_C_TO_STRING_PRETTY));
-
-    json_object_object_foreach(usb_json, key, val)
-    {
-        if (json_object_get_type(val) == json_type_object) {
-            json_object_object_foreach(val, key1, val1)
-            {
-                printf("%s = %s\n", key1, json_object_get_string(val1));
-            }
-        }
-        printf("\n");
-    }
-
     free(recvBuff);
-    json_object_put(usb_json);
     close(sockfd);
 
-    return 0;
+    return usb_json;
 }
 
 static const char*
@@ -129,16 +116,21 @@ main(int argc, char* argv[])
     struct sockaddr_in NekoFiGroupSock;
 
     struct timeval time_val;
-    time_val.tv_sec = 0;
-    time_val.tv_usec = 100000;
+    time_val.tv_sec = 1;
+    time_val.tv_usec = 0;
 
     int status;
     int sockfd;
     int ack = 1;
-    char* node_addr;
+    node_addr node_info[10];
+    size_t node_addr_size;
     socklen_t socklen;
 
     pid_t pid;
+    int fd[10][2];
+
+    json_object* usb_json;
+    usb_json = json_object_new_object();
 
     memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
 
@@ -185,26 +177,56 @@ main(int argc, char* argv[])
     while (1) {
         status = recvfrom(sockfd, &json_size, sizeof(json_size), 0,
                           (struct sockaddr*)&NekoFiGroupSock, &socklen);
-
+        
         if (status < 0) {
             close(sockfd);
             break;
         }
 
+        if (pipe(fd[n_node]) != 0) {
+            printf("Could not create new pipe %d", n_node);
+            exit(1);
+        }
+
         pid = fork();
         if (pid == 0) {
-            node_addr = inet_ntoa(NekoFiGroupSock.sin_addr);
-            printf("FROM %s: received json_size %lu bytes\n", node_addr,
+            printf("FROM %s: received json_size %lu bytes\n", inet_ntoa(NekoFiGroupSock.sin_addr),
                    json_size);
-            recv_usb_list_json(node_addr, json_size);
+            strncpy(node_info[n_node].addr, inet_ntoa(NekoFiGroupSock.sin_addr), sizeof(node_info[n_node].addr));
+            node_info[n_node].jsize = json_size;
+            close(fd[n_node][0]);
+            write(fd[n_node][1], &node_info[n_node], sizeof(node_info[n_node]));
+            close(fd[n_node][1]);
             close(sockfd);
             exit(0);
         }
+
+        if (pid != 0) {
+            close(fd[n_node][1]);
+            wait(NULL);
+            read(fd[n_node][0], &node_info[n_node], sizeof(node_info[n_node]));
+            close(fd[n_node][0]);
+        }
+
         n_node++;
     }
 
     /* debugging purpose */
+    json_object* add_usb_tolist;
     printf("Total NekoFi node: %d\n", n_node);
-
+    if (n_node > 0) {
+        for (int i = 0; i < n_node; i++) {
+            add_usb_tolist = recv_usb_list_json(node_info[i].addr, node_info[i].jsize);
+            json_object_object_add(usb_json, node_info[i].addr, json_object_get(add_usb_tolist));
+            json_object_put(add_usb_tolist);
+        }
+    
+        printf("%s\n",
+            json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_SPACED |
+                                                        JSON_C_TO_STRING_PRETTY));
+    }
+    
+    json_object_put(usb_json);
+    
     return EXIT_SUCCESS;
 }
