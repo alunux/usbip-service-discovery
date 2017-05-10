@@ -113,7 +113,7 @@ main(void)
         if (status < 0) {
             perror("recvfrom");
         } else {
-            usb_json = get_devices(get_iface_addr(HW_IFACE_NAME));
+            usb_json = get_devices();
             json_size = strlen(
               json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN));
             printf("received %d bytes from %s\n", status,

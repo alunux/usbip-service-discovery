@@ -114,7 +114,8 @@ main(void)
         exit(1);
     }
 
-    usb_json = get_devices(get_iface_addr(HW_IFACE_NAME));
+    usb_json = get_devices();
+
     temp_json =
       json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN);
     size_t json_size = strlen(temp_json);

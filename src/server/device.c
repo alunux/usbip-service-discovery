@@ -76,23 +76,22 @@ cleanup_device_usage(void)
 }
 
 json_object*
-get_devices(const char node_addr[])
+get_devices(void)
 {
     struct udev_device* dev;
 
-    json_object* usb_root_json = NULL;
     json_object* usb_contain_json = NULL;
     json_object* usb_item_json = NULL;
 
     const char* ret_path;
     const char* ret_attr;
 
-    usb_root_json = json_object_new_object();
     usb_contain_json = json_object_new_array();
 
-    json_object_object_add(usb_root_json, node_addr, usb_contain_json);
+    if (populate_usb_devices() != 0) {
+        return usb_contain_json;
+    }
 
-    populate_usb_devices();
     udev_list_entry_foreach(dev_list_entry, devices)
     {
         ret_path = udev_list_entry_get_name(dev_list_entry);
@@ -141,10 +140,11 @@ get_devices(const char node_addr[])
                                    json_object_new_string("Unknown"));
         }
 
-        json_object_array_add(usb_contain_json, usb_item_json);
+        json_object_array_add(usb_contain_json, json_object_get(usb_item_json));
+        json_object_put(usb_item_json);
         udev_device_unref(dev);
     }
 
     cleanup_device_usage();
-    return usb_root_json;
+    return usb_contain_json;
 }

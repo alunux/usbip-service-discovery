@@ -29,6 +29,6 @@
 #include <sys/types.h>
 
 int total_usb_device(void);
-json_object* get_devices(const char node_addr[]);
+json_object* get_devices(void);
 
 #endif /* DEVICE_H */
