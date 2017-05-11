@@ -1,6 +1,5 @@
 server_src = [
     'listen.c',
-    'device.c',
 ]
 
 server_requires = [

@@ -26,8 +26,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "device.h"
-
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10296
 #define HW_IFACE_NAME "ens3"
@@ -54,8 +52,6 @@ main(void)
 {
     struct sockaddr_in LocalSock;
     struct ip_mreq NekoFiGroup;
-
-    json_object* usb_json = NULL;
 
     int status;
     int sockfd;
@@ -102,7 +98,6 @@ main(void)
         exit(1);
     }
 
-    size_t json_size;
     while (1) {
         printf("NekoFi server: listening on %s...\n",
                get_iface_addr(HW_IFACE_NAME));
@@ -113,16 +108,12 @@ main(void)
         if (status < 0) {
             perror("recvfrom");
         } else {
-            usb_json = get_devices();
-            json_size = strlen(
-              json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN));
             printf("received %d bytes from %s\n", status,
                    inet_ntoa(LocalSock.sin_addr));
             printf("NekoFi server: packet is %d bytes\n", status);
             printf("NekoFi server: packet contains \"%d\"\n", ack);
-            status = sendto(sockfd, &json_size, sizeof(json_size), 0,
-                            (struct sockaddr*)&LocalSock, socklen);
-            json_object_put(usb_json);
+            status =
+              sendto(sockfd, NULL, 0, 0, (struct sockaddr*)&LocalSock, socklen);
         }
         printf("\n");
     }

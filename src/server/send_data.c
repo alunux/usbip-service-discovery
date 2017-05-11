@@ -118,8 +118,9 @@ main(void)
 
     temp_json =
       json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN);
-    size_t json_size = strlen(temp_json);
+    size_t json_size = strlen(temp_json) + 1;
     char* usb_dev_json = (char*)malloc(json_size);
+    memset(usb_dev_json, '\0', sizeof(char) * json_size);
     strncpy(usb_dev_json, temp_json, json_size);
 
     json_object_put(usb_json);
@@ -136,9 +137,14 @@ main(void)
         if (!fork()) {
             close(sockfd);
 
+            status = send(connfd, &json_size, sizeof(json_size), 0);
+            if (status < 0) {
+                perror("send_data: json_size");
+            }
+
             status = send(connfd, usb_dev_json, json_size, 0);
             if (status < 0) {
-                perror("send_data: send");
+                perror("send_data: usb_json");
             }
 
             close(connfd);
