@@ -35,7 +35,7 @@
 #include "device.h"
 
 #define JSON_PORT 10796
-#define HW_IFACE_NAME "ens3"
+#define HW_IFACE_NAME "wlan0"
 
 static void
 sigchld_handler(int s)
@@ -46,21 +46,22 @@ sigchld_handler(int s)
     errno = saved_errno;
 }
 
-static const char*
-get_iface_addr(const char* iface_name)
+int
+sendall(int s, char* buf, uint32_t* len)
 {
-    int fd;
-    struct ifreq ifr;
-
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
-    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-
-    ioctl(fd, SIOCGIFADDR, &ifr);
-    close(fd);
-
-    return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
+    uint32_t total = 0;
+    uint32_t bytesleft = *len;
+    int n;
+    while (total < *len) {
+        n = send(s, buf + total, bytesleft, 0);
+        if (n == -1) {
+            break;
+        }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total;
+    return n == -1 ? -1 : 0;
 }
 
 int
@@ -72,6 +73,7 @@ main(void)
 
     json_object* usb_json = NULL;
     const char* temp_json;
+    uint32_t json_size = 0;
 
     memset(&serv_addr, '0', sizeof(serv_addr));
 
@@ -118,7 +120,7 @@ main(void)
 
     temp_json =
       json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN);
-    size_t json_size = strlen(temp_json) + 1;
+    json_size = strlen(temp_json) + 1;
     char* usb_dev_json = (char*)malloc(json_size);
     memset(usb_dev_json, '\0', sizeof(char) * json_size);
     strncpy(usb_dev_json, temp_json, json_size);
@@ -142,7 +144,7 @@ main(void)
                 perror("send_data: json_size");
             }
 
-            status = send(connfd, usb_dev_json, json_size, 0);
+            status = sendall(connfd, usb_dev_json, &json_size);
             if (status < 0) {
                 perror("send_data: usb_json");
             }

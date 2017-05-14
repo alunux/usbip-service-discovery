@@ -16,7 +16,6 @@
  */
 
 #include <arpa/inet.h>
-#include <json.h>
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -31,10 +30,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "discover.h"
+
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define JSON_PORT 10796
 #define LISTENPORT 10296
-#define HW_IFACE_NAME "virbr0"
+#define HW_IFACE_NAME "wlp3s0"
 
 static json_object*
 recv_usb_list_json(char node_addr[])
@@ -43,7 +44,9 @@ recv_usb_list_json(char node_addr[])
     struct sockaddr_in serv_addr;
 
     static json_object* usb_json;
-    size_t json_size;
+    uint32_t json_size;
+
+    char recvBuff[4096];
 
     memset(&serv_addr, '0', sizeof(serv_addr));
 
@@ -71,20 +74,20 @@ recv_usb_list_json(char node_addr[])
         exit(1);
     }
 
-    char* recvBuff = malloc(json_size + 1);
-    memset(recvBuff, '\0', sizeof(char) * json_size);
+    do {
+        n = recv(sockfd, recvBuff, json_size, 0);
+        if (n < 0) {
+            perror("recv_data: usb_json");
+            exit(1);
+        }
+    } while (n != json_size);
 
-    n = recv(sockfd, recvBuff, json_size, 0);
-    if (n < 0) {
-        perror("recv_data: usb_json");
-        exit(1);
-    }
+    /* debugging purpose */
+    printf("FROM: %s, json_size: %u, n: %d\n", node_addr, json_size, n);
 
     usb_json = json_tokener_parse(recvBuff);
 
-    free(recvBuff);
     close(sockfd);
-
     return usb_json;
 }
 
@@ -105,8 +108,8 @@ get_iface_addr(const char* iface_name)
     return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
 }
 
-int
-main(void)
+json_object*
+nekofi_discover_json(void)
 {
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
@@ -218,7 +221,5 @@ main(void)
                  usb_json, JSON_C_TO_STRING_SPACED | JSON_C_TO_STRING_PRETTY));
     }
 
-    json_object_put(usb_json);
-
-    return EXIT_SUCCESS;
+    return usb_json;
 }

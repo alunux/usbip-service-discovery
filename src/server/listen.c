@@ -28,7 +28,7 @@
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10296
-#define HW_IFACE_NAME "ens3"
+#define HW_IFACE_NAME "wlan0"
 
 static const char*
 get_iface_addr(const char* iface_name)

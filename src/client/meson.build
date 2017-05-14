@@ -6,14 +6,10 @@ nekofi_res = gnome.compile_resources(
 
 frontend_src = [
     'main.c',
-    'device.c',
+    'discover.c',
     'nekofi.c',
     'nekofiwin.c',
     nekofi_res,
-]
-
-discover_src = [
-    'discover.c',
 ]
 
 frontend_requires = [
@@ -50,10 +46,4 @@ executable(
     include_directories: include_directories(extra_incl),
     dependencies: frontend_requires,
     link_with: libusbip_util,
-)
-
-executable(
-    'discover', discover_src,
-    c_args: frontend_cflags,
-    dependencies: require_json,
 )
