@@ -35,7 +35,7 @@
 #include "device.h"
 
 #define JSON_PORT 10796
-#define HW_IFACE_NAME "wlan0"
+#define HW_IFACE_NAME "ens3"
 
 static void
 sigchld_handler(int s)
@@ -46,7 +46,7 @@ sigchld_handler(int s)
     errno = saved_errno;
 }
 
-int
+static int
 sendall(int s, char* buf, uint32_t* len)
 {
     uint32_t total = 0;
