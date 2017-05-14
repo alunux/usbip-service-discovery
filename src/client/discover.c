@@ -19,7 +19,6 @@
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +45,7 @@ recv_usb_list_json(char node_addr[])
     static json_object* usb_json;
     uint32_t json_size;
 
-    char recvBuff[4096];
+    // char recvBuff[4096];
 
     memset(&serv_addr, '0', sizeof(serv_addr));
 
@@ -74,6 +73,8 @@ recv_usb_list_json(char node_addr[])
         exit(1);
     }
 
+    char *recvBuff = calloc(1, json_size * sizeof(char));
+
     do {
         n = recv(sockfd, recvBuff, json_size, 0);
         if (n < 0) {
@@ -87,6 +88,7 @@ recv_usb_list_json(char node_addr[])
 
     usb_json = json_tokener_parse(recvBuff);
 
+    free(recvBuff);
     close(sockfd);
     return usb_json;
 }
