@@ -20,6 +20,7 @@
 
 #include <json.h>
 
+char* get_usb_desc(json_object* root, const char* key);
 json_object* nekofi_discover_json(void);
 
 #endif /* __DISCOVER_H */

@@ -17,6 +17,7 @@
 
 #include <gtk/gtk.h>
 
+#include "discover.h"
 #include "nekofi.h"
 #include "nekofiwin.h"
 
@@ -28,7 +29,7 @@ typedef struct _NekoFiWindowPrivate NekoFiWindowPrivate;
 
 struct _NekoFiWindowPrivate {
     GtkWidget* scan_result;
-    GSList* scan_items;
+    json_object* usb_json;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(NekoFiWindow, neko_fi_window,
@@ -57,9 +58,24 @@ neko_fi_window_dispose(GObject* object)
 }
 
 static void
+neko_fi_window_finalize(GObject* object)
+{
+    NekoFiWindow* win = NULL;
+    NekoFiWindowPrivate* priv = NULL;
+
+    win = NEKO_FI_WINDOW(object);
+    priv = neko_fi_window_get_instance_private(win);
+
+    json_object_put(priv->usb_json);
+
+    G_OBJECT_CLASS(neko_fi_window_parent_class)->finalize(object);
+}
+
+static void
 neko_fi_window_class_init(NekoFiWindowClass* class)
 {
     G_OBJECT_CLASS(class)->dispose = neko_fi_window_dispose;
+    G_OBJECT_CLASS(class)->finalize = neko_fi_window_finalize;
 
     gtk_widget_class_set_template_from_resource(GTK_WIDGET_CLASS(class),
                                                 "/org/alunux/nekofi/window.ui");
@@ -94,25 +110,74 @@ detach_usb_remote(void)
 static GtkWidget*
 control_usb_remote(GtkWidget* button, gpointer user_data)
 {
-    UsbDevice* USBDevInfo = (UsbDevice*)user_data;
+    gchar* product_usb = (gchar*)user_data;
     if (g_strcmp0(gtk_button_get_label(GTK_BUTTON(button)), "Attach") == 0) {
         if (attach_usb_remote()) {
             /* debugging purpose */
-            g_print("Attach: %s\n", USBDevInfo->product_usb);
-            g_print("Attach addr: %p\n\n", (void*)USBDevInfo);
-
+            g_print("Attach: %s\n", product_usb);
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
         }
     } else {
         if (detach_usb_remote()) {
             /* debugging purpose */
-            g_print("Detach: %s\n", USBDevInfo->product_usb);
-            g_print("Detach addr: %p\n\n", (void*)USBDevInfo);
-
+            g_print("Detach: %s\n", product_usb);
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
         }
     }
     return button;
+}
+
+static GtkWidget*
+neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
+{
+    GtkWidget* button_box = NULL;
+    GtkWidget* devs_info = NULL;
+    GtkWidget* button = NULL;
+    GtkWidget* label = NULL;
+    gchar* devs_desc = NULL;
+    gchar* product = NULL;
+    gchar* idProduct = NULL;
+    gchar* idVendor = NULL;
+    gchar* manufact = NULL;
+    gchar* busid = NULL;
+
+    product = get_usb_desc(usb_info, "product");
+    idProduct = get_usb_desc(usb_info, "idVendor");
+    idVendor = get_usb_desc(usb_info, "idProduct");
+    manufact = get_usb_desc(usb_info, "manufact");
+    busid = get_usb_desc(usb_info, "busid");
+
+    devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_show(devs_info);
+    g_object_ref_sink(devs_info);
+
+    button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_show(button_box);
+    g_object_ref_sink(button_box);
+
+    devs_desc =
+      g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\nManufacturer: "
+                      "%s\nBUSID: %s\nNode: %s\n",
+                      product, idVendor, idProduct, manufact, busid, node_addr);
+
+    label = gtk_label_new(get_usb_desc(usb_info, "product"));
+    gtk_label_set_markup(GTK_LABEL(label), devs_desc);
+    gtk_widget_show(label);
+    g_object_ref_sink(label);
+
+    button = gtk_button_new_with_label("Attach");
+    gtk_widget_show(button);
+    gtk_box_set_center_widget(GTK_BOX(button_box), button);
+    g_object_ref_sink(button);
+
+    g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote),
+                     get_usb_desc(usb_info, "product"));
+
+    gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
+    gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
+
+    g_free(devs_desc);
+    return devs_info;
 }
 
 void
@@ -120,59 +185,22 @@ neko_fi_window_scan(NekoFiWindow* win)
 {
     NekoFiWindowPrivate* priv = NULL;
 
-    GtkWidget* button_box = NULL;
     GtkWidget* devs_info = NULL;
-    GtkWidget* button = NULL;
-    GtkWidget* label = NULL;
-    gchar* devs_desc = NULL;
-    GSList* iterator = NULL;
+    json_object* iterator = NULL;
 
     priv = neko_fi_window_get_instance_private(win);
-    priv->scan_items = usb_devices_list();
+    priv->usb_json = nekofi_discover_json();
 
-    for (iterator = priv->scan_items; iterator; iterator = iterator->next) {
-        devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-        gtk_widget_show(devs_info);
-        g_object_ref_sink(devs_info);
-
-        button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-        gtk_widget_show(button_box);
-        g_object_ref_sink(button_box);
-
-        devs_desc = g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\n"
-                                    "Manufacturer: %s\nBUSID: %s\n",
-                                    ((UsbDevice*)iterator->data)->product_usb,
-                                    ((UsbDevice*)iterator->data)->idVendor,
-                                    ((UsbDevice*)iterator->data)->idProduct,
-                                    ((UsbDevice*)iterator->data)->manufact,
-                                    ((UsbDevice*)iterator->data)->busid);
-
-        label = gtk_label_new(NULL);
-        gtk_label_set_markup(GTK_LABEL(label), devs_desc);
-        gtk_widget_show(label);
-        g_object_ref_sink(label);
-
-        button = gtk_button_new_with_label("Attach");
-        gtk_widget_show(button);
-        gtk_box_set_center_widget(GTK_BOX(button_box), button);
-        g_object_ref_sink(button);
-
-        g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote),
-                         ((UsbDevice*)iterator->data));
-
-        gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
-        gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
-        gtk_list_box_insert(GTK_LIST_BOX(priv->scan_result), devs_info, 0);
-
-        /* debugging purpose */
-        g_print("product: %s\n", ((UsbDevice*)iterator->data)->product_usb);
-        g_print("product addr: %p\n\n", (void*)iterator->data);
-
-        g_object_unref(devs_info);
-        g_object_unref(button_box);
-        g_object_unref(label);
-        g_object_unref(button);
-        g_free(devs_desc);
+    json_object_object_foreach(priv->usb_json, node_addr, devices)
+    {
+        if (json_object_get_type(devices) == json_type_array) {
+            for (int i = 0; i < json_object_array_length(devices); i++) {
+                iterator = json_object_array_get_idx(devices, i);
+                devs_info = append_usb_info(node_addr, iterator);
+                gtk_list_box_prepend(GTK_LIST_BOX(priv->scan_result),
+                                     devs_info);
+            }
+        }
     }
 
     g_object_ref_sink(priv->scan_result);
@@ -200,8 +228,7 @@ refresh_list(GtkWidget* scan_result, GParamSpec* pspec)
     }
 
     g_list_free(con_child);
-    finish_dev_usage(priv->scan_items);
-    g_slist_free(priv->scan_items);
+    json_object_put(priv->usb_json);
 
     neko_fi_window_scan(win);
 }

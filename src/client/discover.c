@@ -34,7 +34,7 @@
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define JSON_PORT 10796
 #define LISTENPORT 10296
-#define HW_IFACE_NAME "wlp3s0"
+#define HW_IFACE_NAME "virbr0"
 
 static json_object*
 recv_usb_list_json(char node_addr[])
@@ -73,7 +73,7 @@ recv_usb_list_json(char node_addr[])
         exit(1);
     }
 
-    char *recvBuff = calloc(1, json_size * sizeof(char));
+    char* recvBuff = calloc(1, json_size * sizeof(char));
 
     do {
         n = recv(sockfd, recvBuff, json_size, 0);
@@ -108,6 +108,18 @@ get_iface_addr(const char* iface_name)
     close(fd);
 
     return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
+}
+
+char*
+get_usb_desc(json_object* root, const char* key)
+{
+    json_object* ret_val;
+
+    if (json_object_object_get_ex(root, key, &ret_val)) {
+        return json_object_get_string(ret_val);
+    }
+
+    return NULL;
 }
 
 json_object*

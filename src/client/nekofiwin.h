@@ -18,7 +18,7 @@
 #ifndef __NEKOFIWIN_H
 #define __NEKOFIWIN_H
 
-#include "device.h"
+#include "discover.h"
 #include "nekofi.h"
 #include <gtk/gtk.h>
 

@@ -17,7 +17,6 @@
 
 #include <gtk/gtk.h>
 
-#include "device.h"
 #include "nekofi.h"
 #include "nekofiwin.h"
 
