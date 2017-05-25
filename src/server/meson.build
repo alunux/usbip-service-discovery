@@ -12,6 +12,10 @@ send_data_src = [
     'device.c',
 ]
 
+monitor_src = [
+    'monitor.c'
+]
+
 server_cflags = [
     '-O2',
     '-D_FORTIFY_SOURCE=2',
@@ -37,6 +41,12 @@ executable(
 
 executable(
     'send_data', send_data_src,
+    c_args: server_cflags,
+    dependencies: server_requires,
+)
+
+executable(
+    'monitor', server_src,
     c_args: server_cflags,
     dependencies: server_requires,
 )
