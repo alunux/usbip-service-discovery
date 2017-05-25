@@ -45,8 +45,6 @@ recv_usb_list_json(char node_addr[])
     static json_object* usb_json;
     uint32_t json_size;
 
-    // char recvBuff[4096];
-
     memset(&serv_addr, '0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
@@ -116,14 +114,15 @@ get_usb_desc(json_object* root, const char* key)
     json_object* ret_val;
 
     if (json_object_object_get_ex(root, key, &ret_val)) {
-        return json_object_get_string(ret_val);
+        return (char*)json_object_get_string(ret_val);
     }
 
     return NULL;
 }
 
-json_object*
-nekofi_discover_json(void)
+void
+nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
+                     GCancellable* cancellable)
 {
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
@@ -202,7 +201,6 @@ nekofi_discover_json(void)
         if (pid == 0) {
             strncpy(node_addr[n_node], inet_ntoa(NekoFiGroupSock.sin_addr),
                     sizeof(node_addr[n_node]));
-            printf("NODE FOUND: %s\n", node_addr[n_node]);
             close(fd[n_node][0]);
             write(fd[n_node][1], node_addr[n_node], sizeof(node_addr[n_node]));
             close(fd[n_node][1]);
@@ -221,9 +219,7 @@ nekofi_discover_json(void)
     }
 
     usb_json = json_object_new_object();
-    /* debugging purpose */
     json_object* add_usb_tolist;
-    printf("Total NekoFi node: %d\n", n_node);
     if (n_node > 0) {
         for (int i = 0; i < n_node; i++) {
             add_usb_tolist = recv_usb_list_json(node_addr[i]);
@@ -235,5 +231,5 @@ nekofi_discover_json(void)
                  usb_json, JSON_C_TO_STRING_SPACED | JSON_C_TO_STRING_PRETTY));
     }
 
-    return usb_json;
+    g_task_return_pointer(task, usb_json, NULL);
 }

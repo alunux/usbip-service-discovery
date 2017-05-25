@@ -18,9 +18,11 @@
 #ifndef __DISCOVER_H
 #define __DISCOVER_H
 
+#include <gio/gio.h>
 #include <json.h>
 
 char* get_usb_desc(json_object* root, const char* key);
-json_object* nekofi_discover_json(void);
+void nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
+                          GCancellable* cancellable);
 
 #endif /* __DISCOVER_H */

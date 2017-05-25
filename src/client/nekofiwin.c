@@ -29,13 +29,14 @@ typedef struct _NekoFiWindowPrivate NekoFiWindowPrivate;
 
 struct _NekoFiWindowPrivate {
     GtkWidget* scan_result;
+    GtkWidget* scan_button;
     json_object* usb_json;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(NekoFiWindow, neko_fi_window,
                            GTK_TYPE_APPLICATION_WINDOW)
 
-static void refresh_list(GtkWidget* scan_result, GParamSpec* pspec);
+static void refresh_list(GtkWidget* scan_result);
 
 static void
 neko_fi_window_init(NekoFiWindow* win)
@@ -82,6 +83,9 @@ neko_fi_window_class_init(NekoFiWindowClass* class)
 
     gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
                                                  NekoFiWindow, scan_result);
+
+    gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
+                                                 NekoFiWindow, scan_button);
 
     gtk_widget_class_bind_template_callback(GTK_WIDGET_CLASS(class),
                                             refresh_list);
@@ -149,11 +153,9 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
 
     devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_show(devs_info);
-    g_object_ref_sink(devs_info);
 
     button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_show(button_box);
-    g_object_ref_sink(button_box);
 
     devs_desc =
       g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\nManufacturer: "
@@ -163,12 +165,10 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
     label = gtk_label_new(get_usb_desc(usb_info, "product"));
     gtk_label_set_markup(GTK_LABEL(label), devs_desc);
     gtk_widget_show(label);
-    g_object_ref_sink(label);
 
     button = gtk_button_new_with_label("Attach");
     gtk_widget_show(button);
     gtk_box_set_center_widget(GTK_BOX(button_box), button);
-    g_object_ref_sink(button);
 
     g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote),
                      get_usb_desc(usb_info, "product"));
@@ -180,23 +180,28 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
     return devs_info;
 }
 
-void
-neko_fi_window_scan(NekoFiWindow* win)
+static void
+neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
+                         gpointer user_data)
 {
+    NekoFiWindow* win = NULL;
     NekoFiWindowPrivate* priv = NULL;
+    user_data = NULL;
 
     GtkWidget* devs_info = NULL;
     json_object* iterator = NULL;
 
+    win = NEKO_FI_WINDOW(source_object);
     priv = neko_fi_window_get_instance_private(win);
-    priv->usb_json = nekofi_discover_json();
+
+    priv->usb_json = g_task_propagate_pointer(G_TASK(res), NULL);
 
     json_object_object_foreach(priv->usb_json, node_addr, devices)
     {
         if (json_object_get_type(devices) == json_type_array) {
             for (int i = 0; i < json_object_array_length(devices); i++) {
                 iterator = json_object_array_get_idx(devices, i);
-                devs_info = append_usb_info(node_addr, iterator);
+                devs_info = neko_fi_window_get_usb_info(node_addr, iterator);
                 gtk_list_box_prepend(GTK_LIST_BOX(priv->scan_result),
                                      devs_info);
             }
@@ -204,10 +209,21 @@ neko_fi_window_scan(NekoFiWindow* win)
     }
 
     g_object_ref_sink(priv->scan_result);
+    gtk_widget_set_sensitive(priv->scan_button, TRUE);
+}
+
+void
+neko_fi_window_scan(NekoFiWindow* win)
+{
+    GTask* task = NULL;
+
+    task = g_task_new(win, NULL, neko_fi_window_scan_done, NULL);
+    g_task_run_in_thread(task, nekofi_discover_json);
+    g_object_unref(task);
 }
 
 static void
-refresh_list(GtkWidget* scan_result, GParamSpec* pspec)
+refresh_list(GtkWidget* scan_result)
 {
     NekoFiWindow* win = NULL;
     NekoFiWindowPrivate* priv = NULL;
@@ -230,5 +246,6 @@ refresh_list(GtkWidget* scan_result, GParamSpec* pspec)
     g_list_free(con_child);
     json_object_put(priv->usb_json);
 
+    gtk_widget_set_sensitive(priv->scan_button, FALSE);
     neko_fi_window_scan(win);
 }
