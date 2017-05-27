@@ -108,13 +108,13 @@ get_iface_addr(const char* iface_name)
     return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
 }
 
-char*
+const char*
 get_usb_desc(json_object* root, const char* key)
 {
     json_object* ret_val;
 
     if (json_object_object_get_ex(root, key, &ret_val)) {
-        return (char*)json_object_get_string(ret_val);
+        return json_object_get_string(ret_val);
     }
 
     return NULL;

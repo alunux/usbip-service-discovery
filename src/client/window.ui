@@ -57,7 +57,7 @@
         <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
             <child>
                 <object class="GtkListBox" id="scan_result">
-                    <property name="visible">True</property>
+                    <property name="visible">False</property>
                 </object>
             </child>
         </object>

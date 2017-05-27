@@ -28,8 +28,12 @@ struct _NekoFiWindow {
 typedef struct _NekoFiWindowPrivate NekoFiWindowPrivate;
 
 struct _NekoFiWindowPrivate {
+    GtkWidget* nf_mess;
+    GtkWidget* scrolled;
     GtkWidget* scan_result;
     GtkWidget* scan_button;
+    gboolean* cleared;
+    GList* node_state;
     json_object* usb_json;
 };
 
@@ -80,6 +84,9 @@ neko_fi_window_class_init(NekoFiWindowClass* class)
 
     gtk_widget_class_set_template_from_resource(GTK_WIDGET_CLASS(class),
                                                 "/org/alunux/nekofi/window.ui");
+
+    gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
+                                                 NekoFiWindow, scrolled);
 
     gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
                                                  NekoFiWindow, scan_result);
@@ -138,12 +145,12 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
     GtkWidget* devs_info = NULL;
     GtkWidget* button = NULL;
     GtkWidget* label = NULL;
-    gchar* devs_desc = NULL;
-    gchar* product = NULL;
-    gchar* idProduct = NULL;
-    gchar* idVendor = NULL;
-    gchar* manufact = NULL;
-    gchar* busid = NULL;
+    const gchar* devs_desc;
+    const gchar* product;
+    const gchar* idProduct;
+    const gchar* idVendor;
+    const gchar* manufact;
+    const gchar* busid;
 
     product = get_usb_desc(usb_info, "product");
     idProduct = get_usb_desc(usb_info, "idVendor");
@@ -181,6 +188,37 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
 }
 
 static void
+neko_fi_window_clear(NekoFiWindow* win)
+{
+    NekoFiWindowPrivate* priv = NULL;
+    GList* con_child = NULL;
+    GList* iter_con = NULL;
+    gchar* no_mess = NULL;
+
+    priv = neko_fi_window_get_instance_private(win);
+    con_child = gtk_container_get_children(GTK_CONTAINER(priv->scrolled));
+
+    for (iter_con = con_child; iter_con != NULL;
+         iter_con = g_list_next(iter_con)) {
+        gtk_container_remove(GTK_CONTAINER(priv->scrolled),
+                             GTK_WIDGET(iter_con->data));
+    }
+
+    g_list_free(con_child);
+
+    no_mess = g_strdup("<span size=\"x-large\">There are no USB devices "
+                       "found\nin your area . . .</span>");
+    priv->nf_mess = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(priv->nf_mess), no_mess);
+    gtk_label_set_justify(GTK_LABEL(priv->nf_mess), GTK_JUSTIFY_CENTER);
+    g_free(no_mess);
+    gtk_widget_show(priv->nf_mess);
+    gtk_container_add(GTK_CONTAINER(priv->scrolled), priv->nf_mess);
+
+    priv->cleared = TRUE;
+}
+
+static void
 neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
                          gpointer user_data)
 {
@@ -190,6 +228,7 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
 
     GtkWidget* devs_info = NULL;
     json_object* iterator = NULL;
+    int count_dev = 0;
 
     win = NEKO_FI_WINDOW(source_object);
     priv = neko_fi_window_get_instance_private(win);
@@ -204,12 +243,22 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
                 devs_info = neko_fi_window_get_usb_info(node_addr, iterator);
                 gtk_list_box_prepend(GTK_LIST_BOX(priv->scan_result),
                                      devs_info);
+                count_dev++;
             }
         }
     }
 
     g_object_ref_sink(priv->scan_result);
+    gtk_widget_show(priv->scan_result);
     gtk_widget_set_sensitive(priv->scan_button, TRUE);
+
+    if (count_dev == 0) {
+        neko_fi_window_clear(win);
+    } else if (priv->cleared) {
+        gtk_container_remove(GTK_CONTAINER(priv->scrolled), priv->nf_mess);
+        gtk_container_add(GTK_CONTAINER(priv->scrolled), priv->scan_result);
+        priv->cleared = FALSE;
+    }
 }
 
 void
