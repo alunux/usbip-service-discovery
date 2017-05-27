@@ -35,15 +35,8 @@ frontend_cflags = [
     '-Wunreachable-code',
 ]
 
-extra_incl = [
-    '../libs',
-    '../utils',
-]
-
 executable(
     'main', frontend_src,
     c_args: frontend_cflags,
-    include_directories: include_directories(extra_incl),
     dependencies: frontend_requires,
-    link_with: libusbip_util,
 )

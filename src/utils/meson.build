@@ -40,13 +40,6 @@ libusbip_util = shared_library(
 )
 
 executable(
-    'tes', tes_src,
-    dependencies: utils_requires,
-    include_directories: include_directories(extra_inc),
-    link_with: libusbip_util,
-)
-
-executable(
     'nekofi-serve', neko_serve,
     dependencies: utils_requires,
     include_directories: include_directories(extra_inc),
