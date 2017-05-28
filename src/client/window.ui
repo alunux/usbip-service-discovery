@@ -31,7 +31,7 @@
           <property name="has-subtitle">False</property>
           <child>
               <object class="GtkButton" id="scan_button">
-                  <signal name="clicked" handler="refresh_list"/>
+                  <signal name="clicked" handler="neko_fi_window_update_list"/>
                   <property name="visible">True</property>
                   <style>
                       <class name="image-button"/>
