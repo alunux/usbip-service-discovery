@@ -46,7 +46,7 @@ executable(
 )
 
 executable(
-    'monitor', server_src,
+    'monitor', monitor_src,
     c_args: server_cflags,
     dependencies: server_requires,
 )
