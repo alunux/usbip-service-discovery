@@ -9,6 +9,9 @@ frontend_src = [
     'discover.c',
     'nekofi.c',
     'nekofiwin.c',
+    'usbip_attach.c',
+    'usbip_detach.c',
+    'usbip_network.c',
     nekofi_res,
 ]
 
@@ -35,8 +38,14 @@ frontend_cflags = [
     '-Wunreachable-code',
 ]
 
+extra_inc = [
+    '../libs',
+]
+
 executable(
     'main', frontend_src,
     c_args: frontend_cflags,
     dependencies: frontend_requires,
+    include_directories: include_directories(extra_inc),
+    link_with: usbip,
 )

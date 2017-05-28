@@ -37,7 +37,7 @@ neko_fi_activate(GApplication* app)
     NekoFiWindow* win = NULL;
 
     win = neko_fi_window_new(NEKO_FI(app));
-    neko_fi_window_scan(win);
+    neko_fi_window_update_list(win);
     gtk_window_present(GTK_WINDOW(win));
 }
 

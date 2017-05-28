@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2011 matt mooney <mfm@muteddisk.com>
+ * Copyright (C) 2017 La Ode Muh. Fadlun Akbar <fadlun.net@gmail.com>
+ *               2011 matt mooney <mfm@muteddisk.com>
  *               2005-2007 Takahiro Hirofuchi
  *
  * This program is free software: you can redistribute it and/or modify
@@ -161,7 +162,49 @@ query_import_device(int sockfd, char* busid)
     return import_device(sockfd, &reply.udev);
 }
 
-static int
+int
+check_device_state(char* host, char* busid)
+{
+    int sockfd;
+    int rc;
+    struct op_import_request request;
+    uint16_t code = OP_REP_IMPORT;
+
+    memset(&request, 0, sizeof(request));
+
+    sockfd = usbip_net_tcp_connect(host, usbip_port_string);
+    if (sockfd < 0) {
+        err("tcp connect");
+        return -1;
+    }
+
+    rc = usbip_net_send_op_common(sockfd, OP_REQ_IMPORT, 0);
+    if (rc < 0) {
+        err("send op_common");
+        return -1;
+    }
+
+    strncpy(request.busid, busid, SYSFS_BUS_ID_SIZE - 1);
+
+    PACK_OP_IMPORT_REQUEST(0, &request);
+
+    rc = usbip_net_send(sockfd, (void*)&request, sizeof(request));
+    if (rc < 0) {
+        err("send op_import_request");
+        return -1;
+    }
+
+    rc = usbip_net_recv_op_common(sockfd, &code);
+    if (rc < 0) {
+        err("recv op_common");
+        return -1;
+    }
+
+    close(sockfd);
+    return 0;
+}
+
+int
 attach_device(char* host, char* busid)
 {
     int sockfd;
@@ -182,22 +225,14 @@ attach_device(char* host, char* busid)
 
     close(sockfd);
 
+    printf("host: %s, usbip_port_string: %s, busid: %s, rhport: %d\n", host,
+           usbip_port_string, busid, rhport);
+
     rc = record_connection(host, usbip_port_string, busid, rhport);
     if (rc < 0) {
         err("record connection");
         return -1;
     }
 
-    return 0;
-}
-
-/* pass parameter address nad busid */
-int
-usbip_attach(void)
-{
-    int ret = 0;
-    const char* host = "192.168.1.7";
-    const char* busid = "2-1";
-    ret = attach_device(host, busid);
-    return ret;
+    return rhport;
 }

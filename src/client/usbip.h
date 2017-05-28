@@ -24,10 +24,14 @@
 #include "config.h"
 #endif
 
+typedef struct _NekoFiDevice {
+    char* node_addr;
+    char* busid;
+} NekoFiDevice;
+
 /* usbip commands */
-int usbip_attach(void);
+int attach_device(char* host, char* busid);
 int detach_port(char* port);
-int usbip_bind(int argc, char* argv[]);
-int usbip_unbind(int argc, char* argv[]);
+int check_device_state(char* host, char* busid);
 
 #endif /* __USBIP_H */
