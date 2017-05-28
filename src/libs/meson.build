@@ -16,8 +16,8 @@ deps = [
 
 ver = '0.1.0'
 
-libusbip = shared_library(
-    'libusbip', sources,
+usbip = shared_library(
+    'usbip', sources,
     c_args: extra_cflags,
     version : ver,
     dependencies : deps
