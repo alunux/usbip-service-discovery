@@ -28,6 +28,7 @@ typedef struct _NekoFiDevice {
     int state;
     char* node_addr;
     char* busid;
+    int port;
 } NekoFiDevice;
 
 /* usbip commands */

@@ -22,6 +22,8 @@
 #include "nekofiwin.h"
 #include "usbip.h"
 
+GList* node_state = NULL;
+
 struct _NekoFiWindow {
     GtkApplicationWindow parent;
 };
@@ -33,8 +35,8 @@ struct _NekoFiWindowPrivate {
     GtkWidget* scrolled;
     GtkWidget* scan_result;
     gboolean cleared;
-    GList* node_state;
     json_object* usb_json;
+    NekoFiDevice* dev_tmp;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(NekoFiWindow, neko_fi_window,
@@ -99,26 +101,36 @@ neko_fi_window_new(NekoFi* app)
 static GtkWidget*
 control_usb_remote(GtkWidget* button, gpointer user_data)
 {
-    NekoFiDevice* con_data = (NekoFiDevice*)user_data;
+    NekoFiWindowPrivate* priv = user_data;
     int port, ret;
+    char port_s[127];
+    gchar* busid;
+
+    busid = g_strdup(priv->dev_tmp->busid);
 
     if (g_strcmp0(gtk_button_get_label(GTK_BUTTON(button)), "Attach") == 0) {
-        port = attach_device(con_data->node_addr, con_data->busid);
+        port = attach_device(priv->dev_tmp->node_addr, priv->dev_tmp->busid);
         if (port < 0) {
-            g_print("Can't attach %s at %s\n", con_data->busid,
-                    con_data->node_addr);
+            g_print("Can't attach %s at %s\n", priv->dev_tmp->busid,
+                    priv->dev_tmp->node_addr);
         } else {
-            g_print("Attach: %s at %s\n", con_data->busid, con_data->node_addr);
+            g_print("Attach: %s at %s\n", priv->dev_tmp->busid,
+                    priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
+            priv->dev_tmp->port = port;
+            node_state = g_list_append(node_state, busid);
         }
     } else {
-        ret = detach_port("0");
+        snprintf(port_s, sizeof(port_s), "%d", priv->dev_tmp->port);
+        ret = detach_port(port_s);
         if (ret < 0) {
-            g_print("Can't detach %s at %s\n", con_data->busid,
-                    con_data->node_addr);
+            g_print("Can't detach %s at %s\n", priv->dev_tmp->busid,
+                    priv->dev_tmp->node_addr);
         } else {
-            g_print("Detach: %s at %s\n", con_data->busid, con_data->node_addr);
+            g_print("Detach: %s at %s\n", priv->dev_tmp->busid,
+                    priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
+            node_state = g_list_remove(node_state, busid);
         }
     }
 
@@ -126,12 +138,15 @@ control_usb_remote(GtkWidget* button, gpointer user_data)
 }
 
 static GtkWidget*
-neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
+neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
+                            NekoFiWindow* win)
 {
+    NekoFiWindowPrivate* priv = NULL;
     GtkWidget* button_box = NULL;
     GtkWidget* devs_info = NULL;
     GtkWidget* button = NULL;
     GtkWidget* label = NULL;
+    GList* iter_con = NULL;
     gchar* devs_desc;
     gchar* product;
     gchar* idProduct;
@@ -145,9 +160,10 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
     manufact = get_usb_desc(usb_info, "manufact");
     busid = get_usb_desc(usb_info, "busid");
 
-    NekoFiDevice* con_data = g_new(NekoFiDevice, 1);
-    con_data->node_addr = node_addr;
-    con_data->busid = busid;
+    priv = neko_fi_window_get_instance_private(win);
+    priv->dev_tmp = g_new(NekoFiDevice, 1);
+    priv->dev_tmp->node_addr = node_addr;
+    priv->dev_tmp->busid = busid;
 
     devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_show(devs_info);
@@ -165,8 +181,16 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
     gtk_widget_show(label);
 
     if (check_device_state(node_addr, busid) < 0) {
-        button = gtk_button_new_with_label("Detach");
-        // gtk_widget_set_sensitive(button, FALSE);
+        if (node_state != NULL) {
+            for (iter_con = node_state; iter_con != NULL;
+                 iter_con = iter_con->next) {
+                if (g_strcmp0(iter_con->data, busid) == 0) {
+                    button = gtk_button_new_with_label("Detach");
+                }
+            }
+        } else {
+            button = gtk_button_new_with_label("In Used");
+        }
     } else {
         button = gtk_button_new_with_label("Attach");
     }
@@ -174,8 +198,7 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
     gtk_widget_show(button);
     gtk_box_set_center_widget(GTK_BOX(button_box), button);
 
-    g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote),
-                     con_data);
+    g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote), priv);
 
     gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
     gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
@@ -247,7 +270,8 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
         if (json_object_get_type(devices) == json_type_array) {
             for (int i = 0; i < json_object_array_length(devices); i++) {
                 iterator = json_object_array_get_idx(devices, i);
-                devs_info = neko_fi_window_get_usb_info(node_addr, iterator);
+                devs_info =
+                  neko_fi_window_get_usb_info(node_addr, iterator, win);
                 gtk_list_box_prepend(GTK_LIST_BOX(priv->scan_result),
                                      devs_info);
                 count_dev++;
