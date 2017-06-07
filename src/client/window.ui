@@ -28,7 +28,6 @@
           <property name="title">USB Device in Your Area - Skripsi</property>
           <property name="visible">True</property>
           <property name="show-close-button">True</property>
-          <property name="has-subtitle">False</property>
       </object>
     </child>
     <child>

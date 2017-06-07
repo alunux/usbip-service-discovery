@@ -224,13 +224,23 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
     NekoFiWindowPrivate* priv = NULL;
 
     GtkWidget* devs_info = NULL;
+    GList* iter_con = NULL;
     json_object* iterator = NULL;
     int count_dev = 0;
 
     win = NEKO_FI_WINDOW(source_object);
     priv = neko_fi_window_get_instance_private(win);
 
+    json_object_put(priv->usb_json);
     priv->usb_json = g_task_propagate_pointer(G_TASK(res), NULL);
+
+    for (iter_con = user_data; iter_con != NULL;
+         iter_con = g_list_next(iter_con)) {
+        gtk_container_remove(GTK_CONTAINER(priv->scan_result),
+                             GTK_WIDGET(iter_con->data));
+    }
+
+    g_list_free(user_data);
 
     json_object_object_foreach(priv->usb_json, node_addr, devices)
     {
@@ -263,23 +273,13 @@ neko_fi_window_update_list(NekoFiWindow* _win)
     NekoFiWindow* win = NULL;
     NekoFiWindowPrivate* priv = NULL;
     GList* con_child = NULL;
-    GList* iter_con = NULL;
     GTask* task_scan = NULL;
 
     win = NEKO_FI_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(_win)));
     priv = neko_fi_window_get_instance_private(win);
     con_child = gtk_container_get_children(GTK_CONTAINER(priv->scan_result));
 
-    for (iter_con = con_child; iter_con != NULL;
-         iter_con = g_list_next(iter_con)) {
-        gtk_container_remove(GTK_CONTAINER(priv->scan_result),
-                             GTK_WIDGET(iter_con->data));
-    }
-
-    g_list_free(con_child);
-    json_object_put(priv->usb_json);
-
-    task_scan = g_task_new(win, NULL, neko_fi_window_scan_done, NULL);
+    task_scan = g_task_new(win, NULL, neko_fi_window_scan_done, con_child);
     g_task_run_in_thread(task_scan, nekofi_discover_json);
     g_object_unref(task_scan);
 }
