@@ -85,6 +85,7 @@ get_devices(void)
 
     const char* ret_path;
     const char* ret_attr;
+    char* check_busid;
 
     usb_contain_json = json_object_new_array();
 
@@ -119,8 +120,11 @@ get_devices(void)
                                json_object_new_string(ret_attr));
 
         ret_attr = udev_device_get_sysname(dev);
+        check_busid = udev_device_get_sysname(dev);
         json_object_object_add(usb_item_json, "busid",
                                json_object_new_string(ret_attr));
+
+        bind_device(check_busid);
 
         ret_attr = udev_device_get_sysattr_value(dev, "manufacturer");
         if (ret_attr != NULL) {

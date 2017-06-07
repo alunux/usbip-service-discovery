@@ -10,6 +10,8 @@ server_requires = [
 send_data_src = [
     'send_data.c',
     'device.c',
+    'usbip_bind.c',
+    'utils.c',
 ]
 
 monitor_src = [
@@ -33,6 +35,10 @@ server_cflags = [
     '-Wunreachable-code',
 ]
 
+extra_inc = [
+    '../libs',
+]
+
 executable(
     'listen', server_src,
     c_args: server_cflags,
@@ -43,6 +49,8 @@ executable(
     'send_data', send_data_src,
     c_args: server_cflags,
     dependencies: server_requires,
+    include_directories: include_directories(extra_inc),
+    link_with: usbip,
 )
 
 executable(

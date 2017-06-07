@@ -63,7 +63,7 @@ broadcast_event(void)
     time_val.tv_usec = 0;
 
     int sockfd;
-    int ack = 1;
+    char ack[] = "1";
     socklen_t socklen;
 
     memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
@@ -102,7 +102,7 @@ broadcast_event(void)
     }
 
     socklen = sizeof(NekoFiGroupSock);
-    sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr*)&NekoFiGroupSock,
+    sendto(sockfd, &ack, strlen(ack), 0, (struct sockaddr*)&NekoFiGroupSock,
            socklen);
 
     close(sockfd);
