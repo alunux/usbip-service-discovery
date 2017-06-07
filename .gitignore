@@ -1,6 +1,2 @@
 /build/
-/src/server/tes*
-/src/utils/tes*
-/src/client/tes*
-/src/client/*.sh
 /.vscode/
