@@ -32,7 +32,6 @@ struct _NekoFiWindowPrivate {
     GtkWidget* nf_mess;
     GtkWidget* scrolled;
     GtkWidget* scan_result;
-    GtkWidget* scan_button;
     gboolean cleared;
     GList* node_state;
     json_object* usb_json;
@@ -89,12 +88,6 @@ neko_fi_window_class_init(NekoFiWindowClass* class)
 
     gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
                                                  NekoFiWindow, scan_result);
-
-    gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
-                                                 NekoFiWindow, scan_button);
-
-    gtk_widget_class_bind_template_callback(GTK_WIDGET_CLASS(class),
-                                            neko_fi_window_update_list);
 }
 
 NekoFiWindow*
@@ -172,8 +165,8 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info)
     gtk_widget_show(label);
 
     if (check_device_state(node_addr, busid) < 0) {
-        button = gtk_button_new_with_label("In Used");
-        gtk_widget_set_sensitive(button, FALSE);
+        button = gtk_button_new_with_label("Detach");
+        // gtk_widget_set_sensitive(button, FALSE);
     } else {
         button = gtk_button_new_with_label("Attach");
     }
@@ -229,7 +222,6 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
 {
     NekoFiWindow* win = NULL;
     NekoFiWindowPrivate* priv = NULL;
-    user_data = NULL;
 
     GtkWidget* devs_info = NULL;
     json_object* iterator = NULL;
@@ -255,7 +247,6 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
 
     g_object_ref_sink(priv->scan_result);
     gtk_widget_show(priv->scan_result);
-    gtk_widget_set_sensitive(priv->scan_button, TRUE);
 
     if (count_dev == 0) {
         neko_fi_window_clear(win);
