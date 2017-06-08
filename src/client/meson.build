@@ -6,6 +6,7 @@ nekofi_res = gnome.compile_resources(
 
 frontend_src = [
     'main.c',
+    'broadcast_event.c',
     'discover.c',
     'nekofi.c',
     'nekofiwin.c',

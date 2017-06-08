@@ -17,12 +17,11 @@
 
 #include <gtk/gtk.h>
 
+#include "broadcast_event.h"
 #include "discover.h"
 #include "nekofi.h"
 #include "nekofiwin.h"
 #include "usbip.h"
-
-GList* node_state = NULL;
 
 struct _NekoFiWindow {
     GtkApplicationWindow parent;
@@ -34,6 +33,7 @@ struct _NekoFiWindowPrivate {
     GtkWidget* nf_mess;
     GtkWidget* scrolled;
     GtkWidget* scan_result;
+    GList* node_state;
     gboolean cleared;
     json_object* usb_json;
     NekoFiDevice* dev_tmp;
@@ -118,7 +118,8 @@ control_usb_remote(GtkWidget* button, gpointer user_data)
                     priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
             priv->dev_tmp->port = port;
-            node_state = g_list_append(node_state, busid);
+            priv->node_state = g_list_append(priv->node_state, busid);
+            broadcast_event();
         }
     } else {
         snprintf(port_s, sizeof(port_s), "%d", priv->dev_tmp->port);
@@ -130,7 +131,8 @@ control_usb_remote(GtkWidget* button, gpointer user_data)
             g_print("Detach: %s at %s\n", priv->dev_tmp->busid,
                     priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
-            node_state = g_list_remove(node_state, busid);
+            priv->node_state = g_list_remove(priv->node_state, busid);
+            broadcast_event();
         }
     }
 
@@ -181,8 +183,8 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
     gtk_widget_show(label);
 
     if (check_device_state(node_addr, busid) < 0) {
-        if (node_state != NULL) {
-            for (iter_con = node_state; iter_con != NULL;
+        if (priv->node_state != NULL) {
+            for (iter_con = priv->node_state; iter_con != NULL;
                  iter_con = iter_con->next) {
                 if (g_strcmp0(iter_con->data, busid) == 0) {
                     button = gtk_button_new_with_label("Detach");
@@ -190,6 +192,7 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
             }
         } else {
             button = gtk_button_new_with_label("In Used");
+            gtk_widget_set_sensitive(button, FALSE);
         }
     } else {
         button = gtk_button_new_with_label("Attach");

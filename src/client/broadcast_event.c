@@ -16,8 +16,6 @@
  */
 
 #include <arpa/inet.h>
-#include <json.h>
-#include <libudev.h>
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -31,9 +29,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "broadcast_event.h"
+
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10297
-#define HW_IFACE_NAME "ens3"
+#define HW_IFACE_NAME "virbr0"
 
 static const char*
 get_iface_addr(const char* iface_name)
@@ -52,7 +52,7 @@ get_iface_addr(const char* iface_name)
     return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
 }
 
-static void
+void
 broadcast_event(void)
 {
     struct in_addr LocalIface;
@@ -106,59 +106,4 @@ broadcast_event(void)
            socklen);
 
     close(sockfd);
-}
-
-int
-main(void)
-{
-    struct udev* udev;
-    struct udev_device* dev;
-    struct udev_monitor* mon;
-
-    int fd;
-
-    udev = udev_new();
-    if (udev == NULL) {
-        perror("udev");
-        exit(1);
-    }
-
-    mon = udev_monitor_new_from_netlink(udev, "udev");
-    udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL);
-    udev_monitor_enable_receiving(mon);
-    fd = udev_monitor_get_fd(mon);
-
-    broadcast_event();
-
-    while (1) {
-        fd_set fds;
-        struct timeval tv;
-        int ret = 0;
-
-        const char* path;
-
-        FD_ZERO(&fds);
-        FD_SET(fd, &fds);
-        tv.tv_sec = 0;
-        tv.tv_usec = 0;
-
-        ret = select(fd + 1, &fds, NULL, NULL, &tv);
-        if (ret > 0 && FD_ISSET(fd, &fds)) {
-            dev = udev_monitor_receive_device(mon);
-            if (dev) {
-                path = udev_device_get_devnode(dev);
-                if (path != NULL) {
-                    if (system("killall send_data") == 0) {
-                        system("./send_data &");
-                        broadcast_event();
-                    }
-                }
-                udev_device_unref(dev);
-            }
-        }
-
-        usleep(250 * 1000);
-    }
-
-    return EXIT_SUCCESS;
 }
