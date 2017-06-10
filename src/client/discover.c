@@ -29,12 +29,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "detect_iface.h"
 #include "discover.h"
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define JSON_PORT 10796
 #define LISTENPORT 10296
-#define HW_IFACE_NAME "virbr0"
 
 static json_object*
 recv_usb_list_json(char node_addr[])
@@ -89,23 +89,6 @@ recv_usb_list_json(char node_addr[])
     free(recvBuff);
     close(sockfd);
     return usb_json;
-}
-
-static const char*
-get_iface_addr(const char* iface_name)
-{
-    int fd;
-    struct ifreq ifr;
-
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
-    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-
-    ioctl(fd, SIOCGIFADDR, &ifr);
-    close(fd);
-
-    return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
 }
 
 char*
@@ -164,7 +147,7 @@ nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
         }
     }
 
-    LocalIface.s_addr = inet_addr(get_iface_addr(HW_IFACE_NAME));
+    LocalIface.s_addr = inet_addr(get_iface_addr());
     if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&LocalIface,
                    sizeof(LocalIface)) < 0) {
         perror("setting local interface");

@@ -30,27 +30,10 @@
 #include <unistd.h>
 
 #include "broadcast_event.h"
+#include "detect_iface.h"
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10297
-#define HW_IFACE_NAME "virbr0"
-
-static const char*
-get_iface_addr(const char* iface_name)
-{
-    int fd;
-    struct ifreq ifr;
-
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
-    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-
-    ioctl(fd, SIOCGIFADDR, &ifr);
-    close(fd);
-
-    return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
-}
 
 void
 broadcast_event(void)
@@ -88,7 +71,7 @@ broadcast_event(void)
         }
     }
 
-    LocalIface.s_addr = inet_addr(get_iface_addr(HW_IFACE_NAME));
+    LocalIface.s_addr = inet_addr(get_iface_addr());
     if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&LocalIface,
                    sizeof(LocalIface)) < 0) {
         perror("setting local interface");

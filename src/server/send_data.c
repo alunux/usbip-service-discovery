@@ -35,7 +35,6 @@
 #include "device.h"
 
 #define JSON_PORT 10796
-#define HW_IFACE_NAME "ens3"
 
 static void
 sigchld_handler(int s)

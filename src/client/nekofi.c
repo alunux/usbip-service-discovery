@@ -18,12 +18,12 @@
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 
+#include "detect_iface.h"
 #include "nekofi.h"
 #include "nekofiwin.h"
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10297
-#define HW_IFACE_NAME "virbr0"
 
 struct _NekoFi {
     GtkApplication parent;
@@ -87,7 +87,7 @@ neko_fi_activate(GApplication* app)
 
     if (!g_socket_join_multicast_group(
           sock_event, g_inet_address_new_from_string(NEKOFI_CAST_ADDR), FALSE,
-          HW_IFACE_NAME, NULL)) {
+          find_wifi_interface(), NULL)) {
         g_print("g_socket_join_multicast_group: error\n");
     }
 

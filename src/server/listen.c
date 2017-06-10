@@ -26,26 +26,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "detect_iface.h"
+
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10296
-#define HW_IFACE_NAME "ens3"
-
-static const char*
-get_iface_addr(const char* iface_name)
-{
-    int fd;
-    struct ifreq ifr;
-
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
-    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-
-    ioctl(fd, SIOCGIFADDR, &ifr);
-    close(fd);
-
-    return inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
-}
 
 int
 main(void)
@@ -89,7 +73,7 @@ main(void)
     }
 
     NekoFiGroup.imr_multiaddr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
-    NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr(HW_IFACE_NAME));
+    NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr());
 
     if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&NekoFiGroup,
                    sizeof(NekoFiGroup)) < 0) {
@@ -99,8 +83,7 @@ main(void)
     }
 
     while (1) {
-        printf("NekoFi server: listening on %s...\n",
-               get_iface_addr(HW_IFACE_NAME));
+        printf("NekoFi server: listening on %s...\n", get_iface_addr());
         socklen = sizeof(LocalSock);
         status = recvfrom(sockfd, &ack, sizeof(ack), 0,
                           (struct sockaddr*)&LocalSock, &socklen);
