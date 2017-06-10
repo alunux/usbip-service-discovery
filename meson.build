@@ -82,4 +82,7 @@ configure_file(
 
 top_inc = include_directories('.')
 
+build_server = get_option('build-server')
+build_client = get_option('build-client')
+
 subdir('src')
