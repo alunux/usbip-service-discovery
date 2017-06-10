@@ -99,9 +99,14 @@ neko_fi_window_new(NekoFi* app)
 }
 
 static GtkWidget*
-control_usb_remote(GtkWidget* button, gpointer user_data)
+neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
 {
-    NekoFiWindowPrivate* priv = user_data;
+    NekoFiWindow* win = NULL;
+    NekoFiWindowPrivate* priv = NULL;
+
+    win = NEKO_FI_WINDOW(user_data);
+    priv = neko_fi_window_get_instance_private(win);
+
     int port, ret;
     char port_s[127];
     gchar* busid;
@@ -141,8 +146,9 @@ control_usb_remote(GtkWidget* button, gpointer user_data)
 
 static GtkWidget*
 neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
-                            NekoFiWindow* win)
+                            NekoFiWindow* _win)
 {
+    NekoFiWindow* win = NULL;
     NekoFiWindowPrivate* priv = NULL;
     GtkWidget* button_box = NULL;
     GtkWidget* devs_info = NULL;
@@ -162,7 +168,9 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
     manufact = get_usb_desc(usb_info, "manufact");
     busid = get_usb_desc(usb_info, "busid");
 
+    win = NEKO_FI_WINDOW(_win);
     priv = neko_fi_window_get_instance_private(win);
+
     priv->dev_tmp = g_new(NekoFiDevice, 1);
     priv->dev_tmp->node_addr = node_addr;
     priv->dev_tmp->busid = busid;
@@ -201,7 +209,8 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
     gtk_widget_show(button);
     gtk_box_set_center_widget(GTK_BOX(button_box), button);
 
-    g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote), priv);
+    g_signal_connect(button, "clicked",
+                     G_CALLBACK(neko_fi_window_control_usb_remote), win);
 
     gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
     gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
