@@ -1,5 +1,6 @@
 server_src = [
     'listen.c',
+    'detect_iface.c',
 ]
 
 server_requires = [
@@ -15,7 +16,13 @@ send_data_src = [
 ]
 
 monitor_src = [
-    'monitor.c'
+    'monitor.c',
+    'detect_iface.c',
+]
+
+serve_dev_src = [
+    'usbip_network.c',
+    'usbipd.c',
 ]
 
 server_cflags = [
@@ -57,4 +64,11 @@ executable(
     'monitor', monitor_src,
     c_args: server_cflags,
     dependencies: server_requires,
+)
+
+executable(
+    'serve_dev', serve_dev_src,
+    dependencies: require_libudev,
+    include_directories: include_directories(extra_inc),
+    link_with: usbip,
 )
