@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=NekoFi Client
+Categories=Utility;
+Exec=nekofi-client-pkexec
+Icon=media-removable
+Terminal=false
+Type=Application
+Comment=USB/IP GUI client

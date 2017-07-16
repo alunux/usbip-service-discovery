@@ -1,8 +1,14 @@
 project('skripsi-labora', 'c', default_options: 'c_std=gnu11', version : '2.0')
-gnome = import('gnome')
-require_frontend = dependency('gtk+-3.0')
+build_server = get_option('build-server')
+build_client = get_option('build-client')
+
+if build_client == true
+    gnome = import('gnome')
+    require_frontend = dependency('gtk+-3.0')
+    require_glib = dependency('glib-2.0')
+endif
+
 require_libudev = dependency('libudev')
-require_glib = dependency('glib-2.0')
 require_json = dependency('json-c')
 
 am_cppflags = [
@@ -82,7 +88,7 @@ configure_file(
 
 top_inc = include_directories('.')
 
-build_server = get_option('build-server')
-build_client = get_option('build-client')
+install_data('org.alunux.nekofi.pkexec.policy', install_dir : join_paths(get_option('datadir'), 'polkit-1/actions'))
+install_data('nekofi-client.desktop', install_dir : join_paths(get_option('datadir'), 'applications'))
 
 subdir('src')
