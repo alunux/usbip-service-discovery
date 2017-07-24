@@ -118,6 +118,7 @@ nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
     int sockfd;
     int ack = 1;
     char node_addr[10][16];
+    const char* iface_name;
     socklen_t socklen;
 
     pid_t pid;
@@ -145,6 +146,12 @@ nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
             close(sockfd);
             exit(1);
         }
+    }
+
+    iface_name = get_iface_addr();
+    if (iface_name == NULL) {
+        printf("Can't find wireless interface\n");
+        exit(1);
     }
 
     LocalIface.s_addr = inet_addr(get_iface_addr());

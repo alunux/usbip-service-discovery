@@ -77,11 +77,11 @@ find_wifi_interface(void)
             ifa_name_len = strlen(iter->ifa_name) + 1;
             ret_iface = malloc(ifa_name_len * sizeof(char));
             strncpy(ret_iface, iter->ifa_name, ifa_name_len);
-            freeifaddrs(iface_addr);
             break;
         }
     }
 
+    freeifaddrs(iface_addr);
     return ret_iface;
 }
 
@@ -93,6 +93,9 @@ get_iface_addr(void)
     char* iface_name;
 
     iface_name = find_wifi_interface();
+    if (iface_name == NULL) {
+        return NULL;
+    }
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;

@@ -47,6 +47,7 @@ broadcast_event(void)
 
     int sockfd;
     char ack[] = "1";
+    const char* iface_name;
     socklen_t socklen;
 
     memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
@@ -71,7 +72,13 @@ broadcast_event(void)
         }
     }
 
-    LocalIface.s_addr = inet_addr(get_iface_addr());
+    iface_name = get_iface_addr();
+    if (iface_name == NULL) {
+        printf("Can't find wireless interface\n");
+        exit(1);
+    }
+
+    LocalIface.s_addr = inet_addr(iface_name);
     if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&LocalIface,
                    sizeof(LocalIface)) < 0) {
         perror("setting local interface");
