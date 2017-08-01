@@ -75,6 +75,22 @@ cleanup_device_usage(void)
     udev_unref(udev);
 }
 
+static int
+pass_raspi_fast_ethernet(struct udev_device* dev)
+{
+    const char* pass_vendor;
+    const char* pass_product;
+
+    pass_vendor = udev_device_get_sysattr_value(dev, "idVendor");
+    pass_product = udev_device_get_sysattr_value(dev, "idProduct");
+
+    if (strcmp(pass_vendor, "ec00") == 0 && strcmp(pass_product, "0424") == 0) {
+        return 0;
+    }
+
+    return -1;
+}
+
 json_object*
 get_devices(void)
 {
@@ -97,6 +113,10 @@ get_devices(void)
     {
         ret_path = udev_list_entry_get_name(dev_list_entry);
         dev = udev_device_new_from_syspath(udev, ret_path);
+
+        if (pass_raspi_fast_ethernet(dev) < 0) {
+            continue;
+        }
 
         usb_item_json = json_object_new_object();
 
