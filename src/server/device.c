@@ -84,7 +84,7 @@ pass_raspi_fast_ethernet(struct udev_device* dev)
     pass_vendor = udev_device_get_sysattr_value(dev, "idVendor");
     pass_product = udev_device_get_sysattr_value(dev, "idProduct");
 
-    if (strcmp(pass_vendor, "ec00") == 0 && strcmp(pass_product, "0424") == 0) {
+    if (strcmp(pass_product, "ec00") == 0 && strcmp(pass_vendor, "0424") == 0) {
         return 0;
     }
 
@@ -115,7 +115,8 @@ get_devices(void)
         dev = udev_device_new_from_syspath(udev, ret_path);
 
         if (pass_raspi_fast_ethernet(dev) == 0) {
-            goto final;
+            udev_device_unref(dev);
+            continue;
         }
 
         usb_item_json = json_object_new_object();
@@ -166,9 +167,6 @@ get_devices(void)
 
         json_object_array_add(usb_contain_json, json_object_get(usb_item_json));
         json_object_put(usb_item_json);
-        udev_device_unref(dev);
-
-    final:
         udev_device_unref(dev);
     }
 
