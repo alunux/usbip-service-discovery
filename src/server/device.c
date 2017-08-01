@@ -114,8 +114,8 @@ get_devices(void)
         ret_path = udev_list_entry_get_name(dev_list_entry);
         dev = udev_device_new_from_syspath(udev, ret_path);
 
-        if (pass_raspi_fast_ethernet(dev) < 0) {
-            continue;
+        if (pass_raspi_fast_ethernet(dev) == 0) {
+            goto final;
         }
 
         usb_item_json = json_object_new_object();
@@ -166,6 +166,9 @@ get_devices(void)
 
         json_object_array_add(usb_contain_json, json_object_get(usb_item_json));
         json_object_put(usb_item_json);
+        udev_device_unref(dev);
+
+    final:
         udev_device_unref(dev);
     }
 
