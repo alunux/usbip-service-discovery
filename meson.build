@@ -88,7 +88,5 @@ configure_file(
 
 top_inc = include_directories('.')
 
-install_data('org.alunux.nekofi.pkexec.policy', install_dir : join_paths(get_option('datadir'), 'polkit-1/actions'))
-install_data('nekofi-client.desktop', install_dir : join_paths(get_option('datadir'), 'applications'))
-
 subdir('src')
+subdir('data')

@@ -132,8 +132,8 @@ main(void)
             if (dev) {
                 path = udev_device_get_devnode(dev);
                 if (path != NULL) {
-                    if (system("killall send_data") == 0) {
-                        system("./send_data &");
+                    if (system("killall usb_metadata_server") == 0) {
+                        system("./usb_metadata_server &");
                         broadcast_event();
                     }
                 }

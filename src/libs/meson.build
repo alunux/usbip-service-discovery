@@ -17,9 +17,19 @@ deps = [
 
 ver = '0.1.0'
 
+libs_headers = [
+    'detect_iface.h',
+    'usbip_common.h',
+    'usbip_host_driver.h',
+    'vhci_driver.h',
+]
+
+install_headers(libs_headers)
+
 usbip = shared_library(
-    'usbip', sources,
+    'nekofi', sources,
     c_args: extra_cflags,
     version : ver,
-    dependencies : deps
+    dependencies : deps,
+    install : true,
 )

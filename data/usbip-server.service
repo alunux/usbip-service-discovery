@@ -1,0 +1,14 @@
+[Unit]
+Description=USB/IP server daemon
+
+[Service]
+ExecStartPre=/sbin/modprobe -qab usbip_host
+ExecStartPre=/sbin/modprobe -qab usbip_core
+ExecStartPre=/sbin/modprobe -qab vhci-hcd
+ExecStart=/usr/bin/usbip_daemon
+ExecStart=/usr/bin/usb_event_monitor
+ExecStart=/usr/bin/usb_metadata_server
+ExecStart=/usr/bin/discovery_listener
+
+[Install]
+WantedBy=multi-user.target
