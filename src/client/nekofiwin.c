@@ -268,9 +268,6 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
 
     json_object_put(priv->usb_json);
     priv->usb_json = g_task_propagate_pointer(G_TASK(res), NULL);
-    if (priv->usb_json == NULL) {
-        printf("Ada error bro\n");
-    }
 
     for (iter_con = user_data; iter_con != NULL;
          iter_con = g_list_next(iter_con)) {
