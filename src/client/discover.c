@@ -201,7 +201,7 @@ discover_get_json(GTask* task, gpointer source_obj, gpointer task_data,
         for (int i = 0; i < n_node; i++) {
             add_usb_tolist = discover_recv_usb_desc_json(node_addr[i]);
             if (add_usb_tolist == NULL) {
-                goto complete;
+                continue;
             }
 
             json_object_object_add(usb_json, node_addr[i], add_usb_tolist);
