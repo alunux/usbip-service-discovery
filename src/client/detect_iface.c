@@ -44,8 +44,10 @@ check_wireless(const char* ifname, char* protocol)
     }
 
     if (ioctl(sock, SIOCGIWNAME, &pwrq) != -1) {
-        if (protocol)
+        if (protocol) {
             strncpy(protocol, pwrq.u.name, IFNAMSIZ);
+        }
+
         close(sock);
         return 1;
     }
@@ -70,8 +72,9 @@ find_wifi_interface(void)
     for (iter = iface_addr; iter != NULL; iter = iter->ifa_next) {
         char protocol[IFNAMSIZ] = { 0 };
 
-        if (iter->ifa_addr == NULL || iter->ifa_addr->sa_family != AF_PACKET)
+        if (iter->ifa_addr == NULL || iter->ifa_addr->sa_family != AF_PACKET) {
             continue;
+        }
 
         if (check_wireless(iter->ifa_name, protocol)) {
             ifa_name_len = strlen(iter->ifa_name) + 1;

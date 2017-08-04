@@ -31,58 +31,70 @@
 
 #include "detect_iface.h"
 #include "discover.h"
+#include "multicast_event.h"
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define JSON_PORT 10796
 #define LISTENPORT 10296
 
-static json_object*
-recv_usb_list_json(char node_addr[])
+static int
+discover_recv_connect(char* node_addr)
 {
-    int sockfd, n;
     struct sockaddr_in serv_addr;
-
-    static json_object* usb_json;
-    uint32_t json_size;
+    int sockfd;
 
     memset(&serv_addr, '0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(JSON_PORT);
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
         perror("recv_data: socket");
-        exit(1);
+        return -1;
     }
 
     if (inet_pton(AF_INET, node_addr, &serv_addr.sin_addr) <= 0) {
         perror("recv_data: inet_pton");
-        exit(1);
+        return -1;
     }
 
     if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("recv_data: connect");
-        exit(1);
+        return -1;
+    }
+
+    return sockfd;
+}
+
+static json_object*
+discover_recv_usb_desc_json(char node_addr[])
+{
+    static json_object* usb_json;
+
+    int sockfd, n;
+    uint32_t json_size;
+
+    sockfd = discover_recv_connect(node_addr);
+    if (sockfd < 0) {
+        perror("discover_recv_connect");
+        return NULL;
     }
 
     n = recv(sockfd, &json_size, sizeof(json_size), 0);
     if (n < 0) {
         perror("recv_data: json_size");
-        exit(1);
+        return NULL;
     }
 
     char* recvBuff = calloc(1, json_size * sizeof(char));
-
     do {
         n = recv(sockfd, recvBuff, json_size, 0);
         if (n < 0) {
             perror("recv_data: usb_json");
-            exit(1);
+            return NULL;
         }
-    } while (n != json_size);
-
-    /* debugging purpose */
-    printf("FROM: %s, json_size: %u, n: %d\n", node_addr, json_size, n);
+    } while ((uint32_t)(n) != json_size);
 
     usb_json = json_tokener_parse(recvBuff);
 
@@ -92,7 +104,7 @@ recv_usb_list_json(char node_addr[])
 }
 
 char*
-get_usb_desc(json_object* root, const char* key)
+discover_query_usb_desc(json_object* root, const char* key)
 {
     json_object* ret_val;
 
@@ -104,19 +116,17 @@ get_usb_desc(json_object* root, const char* key)
 }
 
 void
-nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
-                     GCancellable* cancellable)
+discover_get_json(GTask* task, gpointer source_obj, gpointer task_data,
+                  GCancellable* cancellable)
 {
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
-
-    struct timeval time_val;
-    time_val.tv_sec = 1;
-    time_val.tv_usec = 0;
+    json_object* usb_json;
 
     int status;
     int sockfd;
     int ack = 1;
+    int n_node = 0;
     char node_addr[10][16];
     const char* iface_name;
     socklen_t socklen;
@@ -124,54 +134,32 @@ nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
     pid_t pid;
     int fd[10][2];
 
-    json_object* usb_json;
-
     memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
+    usb_json = json_object_new_object();
+
+    iface_name = get_iface_addr();
+    if (iface_name == NULL) {
+        printf("Can't find wireless interface\n");
+        goto complete;
+    }
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
         perror("failed to create socket");
-        exit(1);
+        goto complete;
     }
 
     NekoFiGroupSock.sin_family = AF_INET;
     NekoFiGroupSock.sin_port = htons(LISTENPORT);
     NekoFiGroupSock.sin_addr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
+    LocalIface.s_addr = inet_addr(iface_name);
 
-    {
-        char reuse = '0';
-        if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse,
-                       sizeof(reuse)) < 0) {
-            perror("setting IP_MULTICAST_LOOP");
-            close(sockfd);
-            exit(1);
-        }
-    }
-
-    iface_name = get_iface_addr();
-    if (iface_name == NULL) {
-        printf("Can't find wireless interface\n");
-        exit(1);
-    }
-
-    LocalIface.s_addr = inet_addr(get_iface_addr());
-    if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&LocalIface,
-                   sizeof(LocalIface)) < 0) {
-        perror("setting local interface");
-        exit(1);
-    }
-
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&time_val,
-                   sizeof(struct timeval)) < 0) {
-        perror("setting socket timeout");
-        exit(1);
-    }
+    multicast_set_ip_iface(sockfd, &LocalIface);
+    multicast_set_socket_timeout(sockfd, 1, 0);
 
     socklen = sizeof(NekoFiGroupSock);
     status = sendto(sockfd, &ack, sizeof(ack), 0,
                     (struct sockaddr*)&NekoFiGroupSock, socklen);
-
-    int n_node = 0;
 
     while (1) {
         status = recvfrom(sockfd, NULL, 0, 0,
@@ -184,7 +172,7 @@ nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
 
         if (pipe(fd[n_node]) != 0) {
             printf("Could not create new pipe %d", n_node);
-            exit(1);
+            continue;
         }
 
         pid = fork();
@@ -208,11 +196,14 @@ nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
         n_node++;
     }
 
-    usb_json = json_object_new_object();
     json_object* add_usb_tolist;
     if (n_node > 0) {
         for (int i = 0; i < n_node; i++) {
-            add_usb_tolist = recv_usb_list_json(node_addr[i]);
+            add_usb_tolist = discover_recv_usb_desc_json(node_addr[i]);
+            if (add_usb_tolist == NULL) {
+                goto complete;
+            }
+
             json_object_object_add(usb_json, node_addr[i], add_usb_tolist);
         }
 
@@ -221,5 +212,6 @@ nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
                  usb_json, JSON_C_TO_STRING_SPACED | JSON_C_TO_STRING_PRETTY));
     }
 
+complete:
     g_task_return_pointer(task, usb_json, NULL);
 }

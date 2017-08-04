@@ -16,34 +16,73 @@
  */
 
 #include <arpa/inet.h>
-#include <net/if.h>
-#include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <unistd.h>
 
-#include "broadcast_event.h"
 #include "detect_iface.h"
+#include "multicast_event.h"
 
 #define NEKOFI_CAST_ADDR "225.10.10.1"
 #define LISTENPORT 10297
 
-void
-broadcast_event(void)
+int
+multicast_set_ip_reuse(int sockfd)
+{
+    char reuse = '0';
+    int ret = 0;
+
+    ret = setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse,
+                     sizeof(reuse));
+    if (ret < 0) {
+        perror("setting IP_MULTICAST_LOOP");
+        close(sockfd);
+    }
+
+    return ret;
+}
+
+int
+multicast_set_ip_iface(int sockfd, struct in_addr* LocalIface)
+{
+    int ret = 0;
+
+    ret = setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)LocalIface,
+                     sizeof(struct in_addr));
+    if (ret < 0) {
+        perror("setting local interface");
+    }
+
+    return ret;
+}
+
+int
+multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec)
+{
+    struct timeval sock_timeout;
+    sock_timeout.tv_sec = sec;
+    sock_timeout.tv_usec = usec;
+
+    int ret = 0;
+
+    ret = setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,
+                     (const char*)&sock_timeout, sizeof(struct timeval));
+    if (ret < 0) {
+        perror("setting socket timeout");
+    }
+
+    return ret;
+}
+
+int
+announce_client_event(void)
 {
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
-
-    struct timeval time_val;
-    time_val.tv_sec = 1;
-    time_val.tv_usec = 0;
 
     int sockfd;
     char ack[] = "1";
@@ -52,48 +91,30 @@ broadcast_event(void)
 
     memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
 
+    iface_name = get_iface_addr();
+    if (iface_name == NULL) {
+        printf("Can't find wireless interface\n");
+        return -1;
+    }
+
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
         perror("failed to create socket");
-        exit(1);
+        return -1;
     }
 
     NekoFiGroupSock.sin_family = AF_INET;
     NekoFiGroupSock.sin_port = htons(LISTENPORT);
     NekoFiGroupSock.sin_addr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
-
-    {
-        char reuse = '0';
-        if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse,
-                       sizeof(reuse)) < 0) {
-            perror("setting IP_MULTICAST_LOOP");
-            close(sockfd);
-            exit(1);
-        }
-    }
-
-    iface_name = get_iface_addr();
-    if (iface_name == NULL) {
-        printf("Can't find wireless interface\n");
-        exit(1);
-    }
-
     LocalIface.s_addr = inet_addr(iface_name);
-    if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&LocalIface,
-                   sizeof(LocalIface)) < 0) {
-        perror("setting local interface");
-        exit(1);
-    }
 
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&time_val,
-                   sizeof(struct timeval)) < 0) {
-        perror("setting socket timeout");
-        exit(1);
-    }
+    multicast_set_ip_iface(sockfd, &LocalIface);
+    multicast_set_socket_timeout(sockfd, 1, 0);
 
     socklen = sizeof(NekoFiGroupSock);
     sendto(sockfd, &ack, strlen(ack), 0, (struct sockaddr*)&NekoFiGroupSock,
            socklen);
-
     close(sockfd);
+
+    return 0;
 }

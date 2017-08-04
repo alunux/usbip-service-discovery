@@ -6,7 +6,7 @@ nekofi_res = gnome.compile_resources(
 
 frontend_src = [
     'main.c',
-    'broadcast_event.c',
+    'multicast_event.c',
     'detect_iface.c',
     'discover.c',
     'nekofi.c',

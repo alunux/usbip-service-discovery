@@ -17,8 +17,8 @@
 
 #include <gtk/gtk.h>
 
-#include "broadcast_event.h"
 #include "discover.h"
+#include "multicast_event.h"
 #include "nekofi.h"
 #include "nekofiwin.h"
 #include "usbip.h"
@@ -124,7 +124,7 @@ neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
             priv->dev_tmp->port = port;
             priv->node_state = g_list_append(priv->node_state, busid);
-            broadcast_event();
+            announce_client_event();
         }
     } else {
         snprintf(port_s, sizeof(port_s), "%d", priv->dev_tmp->port);
@@ -137,7 +137,7 @@ neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
                     priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
             priv->node_state = g_list_remove(priv->node_state, busid);
-            broadcast_event();
+            announce_client_event();
         }
     }
 
@@ -162,11 +162,11 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
     gchar* manufact;
     gchar* busid;
 
-    product = get_usb_desc(usb_info, "product");
-    idProduct = get_usb_desc(usb_info, "idVendor");
-    idVendor = get_usb_desc(usb_info, "idProduct");
-    manufact = get_usb_desc(usb_info, "manufact");
-    busid = get_usb_desc(usb_info, "busid");
+    product = discover_query_usb_desc(usb_info, "product");
+    idProduct = discover_query_usb_desc(usb_info, "idProduct");
+    idVendor = discover_query_usb_desc(usb_info, "idVendor");
+    manufact = discover_query_usb_desc(usb_info, "manufact");
+    busid = discover_query_usb_desc(usb_info, "busid");
 
     win = NEKO_FI_WINDOW(_win);
     priv = neko_fi_window_get_instance_private(win);
@@ -186,7 +186,7 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
                       "%s\nBUSID: %s\nNode: %s\n",
                       product, idVendor, idProduct, manufact, busid, node_addr);
 
-    label = gtk_label_new(get_usb_desc(usb_info, "product"));
+    label = gtk_label_new(discover_query_usb_desc(usb_info, "product"));
     gtk_label_set_markup(GTK_LABEL(label), devs_desc);
     gtk_widget_show(label);
 
@@ -268,6 +268,9 @@ neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
 
     json_object_put(priv->usb_json);
     priv->usb_json = g_task_propagate_pointer(G_TASK(res), NULL);
+    if (priv->usb_json == NULL) {
+        printf("Ada error bro\n");
+    }
 
     for (iter_con = user_data; iter_con != NULL;
          iter_con = g_list_next(iter_con)) {
@@ -316,6 +319,6 @@ neko_fi_window_update_list(NekoFiWindow* _win)
     con_child = gtk_container_get_children(GTK_CONTAINER(priv->scan_result));
 
     task_scan = g_task_new(win, NULL, neko_fi_window_scan_done, con_child);
-    g_task_run_in_thread(task_scan, nekofi_discover_json);
+    g_task_run_in_thread(task_scan, discover_get_json);
     g_object_unref(task_scan);
 }

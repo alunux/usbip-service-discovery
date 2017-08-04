@@ -21,8 +21,8 @@
 #include <gio/gio.h>
 #include <json.h>
 
-char* get_usb_desc(json_object* root, const char* key);
-void nekofi_discover_json(GTask* task, gpointer source_obj, gpointer task_data,
-                          GCancellable* cancellable);
+char* discover_query_usb_desc(json_object* root, const char* key);
+void discover_get_json(GTask* task, gpointer source_obj, gpointer task_data,
+                       GCancellable* cancellable);
 
 #endif /* __DISCOVER_H */

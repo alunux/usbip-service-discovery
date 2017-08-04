@@ -15,9 +15,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BROADCAST_EVENT_H
-#define __BROADCAST_EVENT_H
+#ifndef __MULTICAST_EVENT_H
+#define __BMULTICAST_EVENT_H
 
-void broadcast_event(void);
+#include <arpa/inet.h>
 
-#endif /* __BROADCAST_EVENT_H */
+int multicast_set_ip_reuse(int sockfd);
+int multicast_set_ip_iface(int sockfd, struct in_addr* LocalIface);
+int multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec);
+int announce_client_event(void);
+
+#endif /* __MULTICAST_EVENT_H */
