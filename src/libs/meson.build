@@ -4,6 +4,7 @@ sources = [
     'usbip_common.c',
     'vhci_driver.c',
     'sysfs_utils.c',
+    'detect_iface.c',
 ]
 
 extra_cflags = [

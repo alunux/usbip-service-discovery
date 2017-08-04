@@ -1,6 +1,5 @@
 server_src = [
     'listen.c',
-    'detect_iface.c',
 ]
 
 server_requires = [
@@ -17,7 +16,6 @@ send_data_src = [
 
 monitor_src = [
     'monitor.c',
-    'detect_iface.c',
 ]
 
 serve_dev_src = [
@@ -50,6 +48,8 @@ executable(
     'listen', server_src,
     c_args: server_cflags,
     dependencies: server_requires,
+    include_directories: include_directories(extra_inc),
+    link_with: usbip,
 )
 
 executable(
@@ -64,6 +64,8 @@ executable(
     'monitor', monitor_src,
     c_args: server_cflags,
     dependencies: server_requires,
+    include_directories: include_directories(extra_inc),
+    link_with: usbip,
 )
 
 executable(
