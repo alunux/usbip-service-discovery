@@ -18,7 +18,6 @@ am_cppflags = [
 am_cflags = [
     '-Wall',
     '-Wextra',
-    '-g',
 ]
 
 add_global_arguments(am_cflags, language: 'c')
