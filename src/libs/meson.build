@@ -1,5 +1,7 @@
 sources = [
     'names.c',
+    'usbip_device_driver.c',
+    'usbip_host_common.c',
     'usbip_host_driver.c',
     'usbip_common.c',
     'vhci_driver.c',
@@ -20,6 +22,8 @@ ver = '0.1.0'
 libs_headers = [
     'detect_iface.h',
     'usbip_common.h',
+    'usbip_host_common.h',
+    'usbip_device_driver.h',
     'usbip_host_driver.h',
     'vhci_driver.h',
 ]
