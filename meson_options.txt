@@ -1,2 +1,2 @@
-option('build-server', type : 'boolean', value : false, description : 'Build server-side tools')
+option('build-server', type : 'boolean', value : true, description : 'Build server-side tools')
 option('build-client', type : 'boolean', value : true, description : 'Build client-side tools')
