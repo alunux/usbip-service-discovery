@@ -39,7 +39,8 @@ struct _NekoFiWindowPrivate {
     NekoFiDevice* dev_tmp;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE(NekoFiWindow, neko_fi_window,
+G_DEFINE_TYPE_WITH_PRIVATE(NekoFiWindow,
+                           neko_fi_window,
                            GTK_TYPE_APPLICATION_WINDOW)
 
 static void
@@ -85,11 +86,11 @@ neko_fi_window_class_init(NekoFiWindowClass* class)
     gtk_widget_class_set_template_from_resource(GTK_WIDGET_CLASS(class),
                                                 "/org/alunux/nekofi/window.ui");
 
-    gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
-                                                 NekoFiWindow, scrolled);
+    gtk_widget_class_bind_template_child_private(
+      GTK_WIDGET_CLASS(class), NekoFiWindow, scrolled);
 
-    gtk_widget_class_bind_template_child_private(GTK_WIDGET_CLASS(class),
-                                                 NekoFiWindow, scan_result);
+    gtk_widget_class_bind_template_child_private(
+      GTK_WIDGET_CLASS(class), NekoFiWindow, scan_result);
 }
 
 NekoFiWindow*
@@ -116,10 +117,12 @@ neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
     if (g_strcmp0(gtk_button_get_label(GTK_BUTTON(button)), "Attach") == 0) {
         port = attach_device(priv->dev_tmp->node_addr, priv->dev_tmp->busid);
         if (port < 0) {
-            g_print("Can't attach %s at %s\n", priv->dev_tmp->busid,
+            g_print("Can't attach %s at %s\n",
+                    priv->dev_tmp->busid,
                     priv->dev_tmp->node_addr);
         } else {
-            g_print("Attach: %s at %s\n", priv->dev_tmp->busid,
+            g_print("Attach: %s at %s\n",
+                    priv->dev_tmp->busid,
                     priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
             priv->dev_tmp->port = port;
@@ -130,10 +133,12 @@ neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
         snprintf(port_s, sizeof(port_s), "%d", priv->dev_tmp->port);
         ret = detach_port(port_s);
         if (ret < 0) {
-            g_print("Can't detach %s at %s\n", priv->dev_tmp->busid,
+            g_print("Can't detach %s at %s\n",
+                    priv->dev_tmp->busid,
                     priv->dev_tmp->node_addr);
         } else {
-            g_print("Detach: %s at %s\n", priv->dev_tmp->busid,
+            g_print("Detach: %s at %s\n",
+                    priv->dev_tmp->busid,
                     priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
             priv->node_state = g_list_remove(priv->node_state, busid);
@@ -145,7 +150,8 @@ neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
 }
 
 static GtkWidget*
-neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
+neko_fi_window_get_usb_info(gchar* node_addr,
+                            json_object* usb_info,
                             NekoFiWindow* _win)
 {
     NekoFiWindow* win = NULL;
@@ -179,7 +185,12 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
     devs_desc =
       g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\nManufacturer: "
                       "%s\nBUSID: %s\nNode: %s\n",
-                      product, idVendor, idProduct, manufact, busid, node_addr);
+                      product,
+                      idVendor,
+                      idProduct,
+                      manufact,
+                      busid,
+                      node_addr);
 
     label = gtk_label_new(discover_query_usb_desc(usb_info, "product"));
     gtk_label_set_markup(GTK_LABEL(label), devs_desc);
@@ -204,8 +215,8 @@ neko_fi_window_get_usb_info(gchar* node_addr, json_object* usb_info,
     gtk_widget_show(button);
     gtk_box_set_center_widget(GTK_BOX(button_box), button);
 
-    g_signal_connect(button, "clicked",
-                     G_CALLBACK(neko_fi_window_control_usb_remote), win);
+    g_signal_connect(
+      button, "clicked", G_CALLBACK(neko_fi_window_control_usb_remote), win);
 
     gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
     gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
@@ -247,7 +258,8 @@ neko_fi_window_clear(NekoFiWindow* win)
 }
 
 static void
-neko_fi_window_scan_done(GObject* source_object, GAsyncResult* res,
+neko_fi_window_scan_done(GObject* source_object,
+                         GAsyncResult* res,
                          gpointer user_data)
 {
     NekoFiWindow* win = NULL;

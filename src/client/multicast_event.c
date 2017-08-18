@@ -35,8 +35,8 @@ multicast_set_ip_reuse(int sockfd)
     char reuse = '0';
     int ret = 0;
 
-    ret = setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse,
-                     sizeof(reuse));
+    ret = setsockopt(
+      sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse, sizeof(reuse));
     if (ret < 0) {
         perror("setting IP_MULTICAST_LOOP");
         close(sockfd);
@@ -50,7 +50,10 @@ multicast_set_ip_iface(int sockfd, struct in_addr* LocalIface)
 {
     int ret = 0;
 
-    ret = setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)LocalIface,
+    ret = setsockopt(sockfd,
+                     IPPROTO_IP,
+                     IP_MULTICAST_IF,
+                     (char*)LocalIface,
                      sizeof(struct in_addr));
     if (ret < 0) {
         perror("setting local interface");
@@ -68,8 +71,11 @@ multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec)
 
     int ret = 0;
 
-    ret = setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,
-                     (const char*)&sock_timeout, sizeof(struct timeval));
+    ret = setsockopt(sockfd,
+                     SOL_SOCKET,
+                     SO_RCVTIMEO,
+                     (const char*)&sock_timeout,
+                     sizeof(struct timeval));
     if (ret < 0) {
         perror("setting socket timeout");
     }
@@ -111,7 +117,11 @@ announce_client_event(void)
     multicast_set_socket_timeout(sockfd, 1, 0);
 
     socklen = sizeof(NekoFiGroupSock);
-    sendto(sockfd, &ack, strlen(ack), 0, (struct sockaddr*)&NekoFiGroupSock,
+    sendto(sockfd,
+           &ack,
+           strlen(ack),
+           0,
+           (struct sockaddr*)&NekoFiGroupSock,
            socklen);
     close(sockfd);
 

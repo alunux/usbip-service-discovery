@@ -281,7 +281,9 @@ usbip_net_tcp_connect(char* hostname, char* service)
     /* get all possible addresses */
     ret = getaddrinfo(hostname, service, &hints, &res);
     if (ret < 0) {
-        dbg("getaddrinfo: %s service %s: %s", hostname, service,
+        dbg("getaddrinfo: %s service %s: %s",
+            hostname,
+            service,
             gai_strerror(ret));
         return ret;
     }

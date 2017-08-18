@@ -32,9 +32,14 @@ modify_match_busid(char* busid, int add)
     char match_busid_attr_path[SYSFS_PATH_MAX];
     int rc;
 
-    snprintf(match_busid_attr_path, sizeof(match_busid_attr_path),
-             "%s/%s/%s/%s/%s/%s", SYSFS_MNT_PATH, SYSFS_BUS_NAME,
-             SYSFS_BUS_TYPE, SYSFS_DRIVERS_NAME, USBIP_HOST_DRV_NAME,
+    snprintf(match_busid_attr_path,
+             sizeof(match_busid_attr_path),
+             "%s/%s/%s/%s/%s/%s",
+             SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME,
+             SYSFS_BUS_TYPE,
+             SYSFS_DRIVERS_NAME,
+             USBIP_HOST_DRV_NAME,
              attr_name);
 
     if (add)

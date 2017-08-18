@@ -24,10 +24,15 @@
 
 #define NEKO_FI_WINDOW_TYPE (neko_fi_window_get_type())
 
-G_DECLARE_FINAL_TYPE(NekoFiWindow, neko_fi_window, NEKO, FI_WINDOW,
+G_DECLARE_FINAL_TYPE(NekoFiWindow,
+                     neko_fi_window,
+                     NEKO,
+                     FI_WINDOW,
                      GtkApplicationWindow)
 
-NekoFiWindow* neko_fi_window_new(NekoFi* app);
-void neko_fi_window_update_list(NekoFiWindow* _win);
+NekoFiWindow*
+neko_fi_window_new(NekoFi* app);
+void
+neko_fi_window_update_list(NekoFiWindow* _win);
 
 #endif /* __NEKOFIWIN_H */

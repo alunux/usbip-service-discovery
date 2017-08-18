@@ -63,9 +63,15 @@ unbind_device(char* busid)
     }
 
     /* Unbind device from driver. */
-    snprintf(unbind_attr_path, sizeof(unbind_attr_path), "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH, SYSFS_BUS_NAME, bus_type, SYSFS_DRIVERS_NAME,
-             USBIP_HOST_DRV_NAME, unbind_attr_name);
+    snprintf(unbind_attr_path,
+             sizeof(unbind_attr_path),
+             "%s/%s/%s/%s/%s/%s",
+             SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME,
+             bus_type,
+             SYSFS_DRIVERS_NAME,
+             USBIP_HOST_DRV_NAME,
+             unbind_attr_name);
 
     rc = write_sysfs_attribute(unbind_attr_path, busid, strlen(busid));
     if (rc < 0) {
@@ -81,9 +87,15 @@ unbind_device(char* busid)
     }
 
     /* Trigger new probing. */
-    snprintf(rebind_attr_path, sizeof(unbind_attr_path), "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH, SYSFS_BUS_NAME, bus_type, SYSFS_DRIVERS_NAME,
-             USBIP_HOST_DRV_NAME, rebind_attr_name);
+    snprintf(rebind_attr_path,
+             sizeof(unbind_attr_path),
+             "%s/%s/%s/%s/%s/%s",
+             SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME,
+             bus_type,
+             SYSFS_DRIVERS_NAME,
+             USBIP_HOST_DRV_NAME,
+             rebind_attr_name);
 
     rc = write_sysfs_attribute(rebind_attr_path, busid, strlen(busid));
     if (rc < 0) {

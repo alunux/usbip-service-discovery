@@ -53,8 +53,9 @@ main(void)
 
     {
         int reuse = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse,
-                       sizeof(reuse)) < 0) {
+        if (setsockopt(
+              sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(reuse)) <
+            0) {
             perror("setting SO_REUSEADDR");
             close(sockfd);
             exit(1);
@@ -75,7 +76,10 @@ main(void)
     NekoFiGroup.imr_multiaddr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
     NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr());
 
-    if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&NekoFiGroup,
+    if (setsockopt(sockfd,
+                   IPPROTO_IP,
+                   IP_ADD_MEMBERSHIP,
+                   (char*)&NekoFiGroup,
                    sizeof(NekoFiGroup)) < 0) {
         perror("setup multicast group");
         close(sockfd);
@@ -85,13 +89,14 @@ main(void)
     while (1) {
         printf("NekoFi server: listening on %s...\n", get_iface_addr());
         socklen = sizeof(LocalSock);
-        status = recvfrom(sockfd, &ack, sizeof(ack), 0,
-                          (struct sockaddr*)&LocalSock, &socklen);
+        status = recvfrom(
+          sockfd, &ack, sizeof(ack), 0, (struct sockaddr*)&LocalSock, &socklen);
 
         if (status < 0) {
             perror("recvfrom");
         } else {
-            printf("received %d bytes from %s\n", status,
+            printf("received %d bytes from %s\n",
+                   status,
                    inet_ntoa(LocalSock.sin_addr));
             printf("NekoFi server: packet is %d bytes\n", status);
             printf("NekoFi server: packet contains \"%d\"\n", ack);

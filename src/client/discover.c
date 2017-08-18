@@ -116,7 +116,9 @@ discover_query_usb_desc(json_object* root, const char* key)
 }
 
 void
-discover_get_json(GTask* task, gpointer source_obj, gpointer task_data,
+discover_get_json(GTask* task,
+                  gpointer source_obj,
+                  gpointer task_data,
                   GCancellable* cancellable)
 {
     struct in_addr LocalIface;
@@ -158,12 +160,16 @@ discover_get_json(GTask* task, gpointer source_obj, gpointer task_data,
     multicast_set_socket_timeout(sockfd, 1, 0);
 
     socklen = sizeof(NekoFiGroupSock);
-    status = sendto(sockfd, &ack, sizeof(ack), 0,
-                    (struct sockaddr*)&NekoFiGroupSock, socklen);
+    status = sendto(sockfd,
+                    &ack,
+                    sizeof(ack),
+                    0,
+                    (struct sockaddr*)&NekoFiGroupSock,
+                    socklen);
 
     while (1) {
-        status = recvfrom(sockfd, NULL, 0, 0,
-                          (struct sockaddr*)&NekoFiGroupSock, &socklen);
+        status = recvfrom(
+          sockfd, NULL, 0, 0, (struct sockaddr*)&NekoFiGroupSock, &socklen);
 
         if (status < 0) {
             close(sockfd);
@@ -177,7 +183,8 @@ discover_get_json(GTask* task, gpointer source_obj, gpointer task_data,
 
         pid = fork();
         if (pid == 0) {
-            strncpy(node_addr[n_node], inet_ntoa(NekoFiGroupSock.sin_addr),
+            strncpy(node_addr[n_node],
+                    inet_ntoa(NekoFiGroupSock.sin_addr),
                     sizeof(node_addr[n_node]));
             close(fd[n_node][0]);
             write(fd[n_node][1], node_addr[n_node], sizeof(node_addr[n_node]));

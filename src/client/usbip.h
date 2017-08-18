@@ -32,8 +32,11 @@ typedef struct _NekoFiDevice {
 } NekoFiDevice;
 
 /* usbip commands */
-int attach_device(char* host, char* busid);
-int detach_port(char* port);
-int check_device_state(char* host, char* busid);
+int
+attach_device(char* host, char* busid);
+int
+detach_port(char* port);
+int
+check_device_state(char* host, char* busid);
 
 #endif /* __USBIP_H */

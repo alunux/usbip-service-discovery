@@ -64,7 +64,10 @@ broadcast_event(void)
 
     {
         char reuse = '0';
-        if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse,
+        if (setsockopt(sockfd,
+                       IPPROTO_IP,
+                       IP_MULTICAST_LOOP,
+                       (char*)&reuse,
                        sizeof(reuse)) < 0) {
             perror("setting IP_MULTICAST_LOOP");
             close(sockfd);
@@ -73,20 +76,30 @@ broadcast_event(void)
     }
 
     LocalIface.s_addr = inet_addr(get_iface_addr());
-    if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&LocalIface,
+    if (setsockopt(sockfd,
+                   IPPROTO_IP,
+                   IP_MULTICAST_IF,
+                   (char*)&LocalIface,
                    sizeof(LocalIface)) < 0) {
         perror("setting local interface");
         exit(1);
     }
 
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&time_val,
+    if (setsockopt(sockfd,
+                   SOL_SOCKET,
+                   SO_RCVTIMEO,
+                   (const char*)&time_val,
                    sizeof(struct timeval)) < 0) {
         perror("setting socket timeout");
         exit(1);
     }
 
     socklen = sizeof(NekoFiGroupSock);
-    sendto(sockfd, &ack, strlen(ack), 0, (struct sockaddr*)&NekoFiGroupSock,
+    sendto(sockfd,
+           &ack,
+           strlen(ack),
+           0,
+           (struct sockaddr*)&NekoFiGroupSock,
            socklen);
 
     close(sockfd);

@@ -96,8 +96,8 @@ import_device(int sockfd, struct usbip_usb_device* udev)
         return -1;
     }
 
-    rc = usbip_vhci_attach_device(port, sockfd, udev->busnum, udev->devnum,
-                                  udev->speed);
+    rc = usbip_vhci_attach_device(
+      port, sockfd, udev->busnum, udev->devnum, udev->speed);
     if (rc < 0) {
         err("import device");
         usbip_vhci_driver_close();
@@ -225,8 +225,11 @@ attach_device(char* host, char* busid)
 
     close(sockfd);
 
-    printf("host: %s, usbip_port_string: %s, busid: %s, rhport: %d\n", host,
-           usbip_port_string, busid, rhport);
+    printf("host: %s, usbip_port_string: %s, busid: %s, rhport: %d\n",
+           host,
+           usbip_port_string,
+           busid,
+           rhport);
 
     rc = record_connection(host, usbip_port_string, busid, rhport);
     if (rc < 0) {

@@ -311,8 +311,13 @@ do_accept(int listenfd)
         return -1;
     }
 
-    rc = getnameinfo((struct sockaddr*)&ss, len, host, sizeof(host), port,
-                     sizeof(port), NI_NUMERICHOST | NI_NUMERICSERV);
+    rc = getnameinfo((struct sockaddr*)&ss,
+                     len,
+                     host,
+                     sizeof(host),
+                     port,
+                     sizeof(port),
+                     NI_NUMERICHOST | NI_NUMERICSERV);
     if (rc)
         err("getnameinfo: %s", gai_strerror(rc));
 
@@ -357,8 +362,13 @@ addrinfo_to_text(struct addrinfo* ai, char buf[], const size_t buf_size)
 
     buf[0] = '\0';
 
-    rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, hbuf, sizeof(hbuf), sbuf,
-                     sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+    rc = getnameinfo(ai->ai_addr,
+                     ai->ai_addrlen,
+                     hbuf,
+                     sizeof(hbuf),
+                     sbuf,
+                     sizeof(sbuf),
+                     NI_NUMERICHOST | NI_NUMERICSERV);
     if (rc)
         err("getnameinfo: %s", gai_strerror(rc));
 
@@ -430,7 +440,8 @@ do_getaddrinfo(char* host, int ai_family)
 
     rc = getaddrinfo(host, usbip_port_string, &hints, &ai_head);
     if (rc) {
-        err("failed to get a network address %s: %s", usbip_port_string,
+        err("failed to get a network address %s: %s",
+            usbip_port_string,
             gai_strerror(rc));
         return NULL;
     }
@@ -534,8 +545,8 @@ do_standalone_mode(int daemonize, int ipv4, int ipv6)
         usbip_host_driver_close();
         return -1;
     }
-    nsockfd = listen_all_addrinfo(ai_head, sockfdlist,
-                                  sizeof(sockfdlist) / sizeof(*sockfdlist));
+    nsockfd = listen_all_addrinfo(
+      ai_head, sockfdlist, sizeof(sockfdlist) / sizeof(*sockfdlist));
     freeaddrinfo(ai_head);
     if (nsockfd <= 0) {
         err("failed to open a listening socket");

@@ -41,9 +41,15 @@ bind_usbip(char* busid)
     char bind_attr_path[SYSFS_PATH_MAX];
     int rc = -1;
 
-    snprintf(bind_attr_path, sizeof(bind_attr_path), "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH, SYSFS_BUS_NAME, SYSFS_BUS_TYPE, SYSFS_DRIVERS_NAME,
-             USBIP_HOST_DRV_NAME, attr_name);
+    snprintf(bind_attr_path,
+             sizeof(bind_attr_path),
+             "%s/%s/%s/%s/%s/%s",
+             SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME,
+             SYSFS_BUS_TYPE,
+             SYSFS_DRIVERS_NAME,
+             USBIP_HOST_DRV_NAME,
+             attr_name);
 
     rc = write_sysfs_attribute(bind_attr_path, busid, strlen(busid));
     if (rc < 0) {
@@ -105,9 +111,15 @@ unbind_other(char* busid)
     }
 
     /* Unbind device from driver. */
-    snprintf(unbind_attr_path, sizeof(unbind_attr_path), "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH, SYSFS_BUS_NAME, SYSFS_BUS_TYPE, SYSFS_DRIVERS_NAME,
-             driver, attr_name);
+    snprintf(unbind_attr_path,
+             sizeof(unbind_attr_path),
+             "%s/%s/%s/%s/%s/%s",
+             SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME,
+             SYSFS_BUS_TYPE,
+             SYSFS_DRIVERS_NAME,
+             driver,
+             attr_name);
 
     rc = write_sysfs_attribute(unbind_attr_path, busid, strlen(busid));
     if (rc < 0) {
@@ -147,7 +159,8 @@ bind_device(char* busid)
         err("could not unbind driver from device on busid %s", busid);
         return -1;
     } else if (rc == UNBIND_ST_USBIP_HOST) {
-        err("device on busid %s is already bound to %s", busid,
+        err("device on busid %s is already bound to %s",
+            busid,
             USBIP_HOST_DRV_NAME);
         return -1;
     }

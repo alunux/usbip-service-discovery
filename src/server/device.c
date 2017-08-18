@@ -17,8 +17,10 @@
 
 #include "device.h"
 
-static int populate_usb_devices(void);
-static void cleanup_device_usage(void);
+static int
+populate_usb_devices(void);
+static void
+cleanup_device_usage(void);
 
 struct udev* udev;
 struct udev_enumerate* enumerate;
@@ -121,48 +123,48 @@ get_devices(void)
 
         usb_item_json = json_object_new_object();
 
-        json_object_object_add(usb_item_json, "path",
-                               json_object_new_string(ret_path));
+        json_object_object_add(
+          usb_item_json, "path", json_object_new_string(ret_path));
 
         ret_attr = udev_device_get_sysattr_value(dev, "idVendor");
-        json_object_object_add(usb_item_json, "idVendor",
-                               json_object_new_string(ret_attr));
+        json_object_object_add(
+          usb_item_json, "idVendor", json_object_new_string(ret_attr));
 
         ret_attr = udev_device_get_sysattr_value(dev, "idProduct");
-        json_object_object_add(usb_item_json, "idProduct",
-                               json_object_new_string(ret_attr));
+        json_object_object_add(
+          usb_item_json, "idProduct", json_object_new_string(ret_attr));
 
         ret_attr = udev_device_get_sysattr_value(dev, "bConfigurationValue");
-        json_object_object_add(usb_item_json, "bConfValue",
-                               json_object_new_string(ret_attr));
+        json_object_object_add(
+          usb_item_json, "bConfValue", json_object_new_string(ret_attr));
 
         ret_attr = udev_device_get_sysattr_value(dev, "bNumInterfaces");
-        json_object_object_add(usb_item_json, "bNumIntfs",
-                               json_object_new_string(ret_attr));
+        json_object_object_add(
+          usb_item_json, "bNumIntfs", json_object_new_string(ret_attr));
 
         ret_attr = udev_device_get_sysname(dev);
         check_busid = udev_device_get_sysname(dev);
-        json_object_object_add(usb_item_json, "busid",
-                               json_object_new_string(ret_attr));
+        json_object_object_add(
+          usb_item_json, "busid", json_object_new_string(ret_attr));
 
         bind_device(check_busid);
 
         ret_attr = udev_device_get_sysattr_value(dev, "manufacturer");
         if (ret_attr != NULL) {
-            json_object_object_add(usb_item_json, "manufact",
-                                   json_object_new_string(ret_attr));
+            json_object_object_add(
+              usb_item_json, "manufact", json_object_new_string(ret_attr));
         } else {
-            json_object_object_add(usb_item_json, "manufact",
-                                   json_object_new_string("Unknown"));
+            json_object_object_add(
+              usb_item_json, "manufact", json_object_new_string("Unknown"));
         }
 
         ret_attr = udev_device_get_sysattr_value(dev, "product");
         if (ret_attr != NULL) {
-            json_object_object_add(usb_item_json, "product",
-                                   json_object_new_string(ret_attr));
+            json_object_object_add(
+              usb_item_json, "product", json_object_new_string(ret_attr));
         } else {
-            json_object_object_add(usb_item_json, "product",
-                                   json_object_new_string("Unknown"));
+            json_object_object_add(
+              usb_item_json, "product", json_object_new_string("Unknown"));
         }
 
         json_object_array_add(usb_contain_json, json_object_get(usb_item_json));

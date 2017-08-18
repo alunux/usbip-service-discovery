@@ -20,9 +20,13 @@
 
 #include <arpa/inet.h>
 
-int multicast_set_ip_reuse(int sockfd);
-int multicast_set_ip_iface(int sockfd, struct in_addr* LocalIface);
-int multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec);
-int announce_client_event(void);
+int
+multicast_set_ip_reuse(int sockfd);
+int
+multicast_set_ip_iface(int sockfd, struct in_addr* LocalIface);
+int
+multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec);
+int
+announce_client_event(void);
 
 #endif /* __MULTICAST_EVENT_H */

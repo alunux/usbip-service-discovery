@@ -72,8 +72,10 @@ neko_fi_activate(GApplication* app)
     sockaddr =
       G_SOCKET_ADDRESS(g_inet_socket_address_new(inetaddr, LISTENPORT));
 
-    sock_event = g_socket_new(G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM,
-                              G_SOCKET_PROTOCOL_UDP, &err);
+    sock_event = g_socket_new(G_SOCKET_FAMILY_IPV4,
+                              G_SOCKET_TYPE_DATAGRAM,
+                              G_SOCKET_PROTOCOL_UDP,
+                              &err);
 
     if (sock_event == NULL) {
         g_print("g_socket_new: %s\n", err->message);
@@ -86,8 +88,11 @@ neko_fi_activate(GApplication* app)
     }
 
     if (!g_socket_join_multicast_group(
-          sock_event, g_inet_address_new_from_string(NEKOFI_CAST_ADDR), FALSE,
-          find_wifi_interface(), NULL)) {
+          sock_event,
+          g_inet_address_new_from_string(NEKOFI_CAST_ADDR),
+          FALSE,
+          find_wifi_interface(),
+          NULL)) {
         g_print("g_socket_join_multicast_group: error\n");
     }
 
@@ -111,6 +116,10 @@ neko_fi_class_init(NekoFiClass* class)
 NekoFi*
 neko_fi_new(void)
 {
-    return g_object_new(NEKO_FI_TYPE, "application-id", "org.alunux.nekofi",
-                        "flags", G_APPLICATION_FLAGS_NONE, NULL);
+    return g_object_new(NEKO_FI_TYPE,
+                        "application-id",
+                        "org.alunux.nekofi",
+                        "flags",
+                        G_APPLICATION_FLAGS_NONE,
+                        NULL);
 }

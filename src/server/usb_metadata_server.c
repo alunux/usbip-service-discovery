@@ -87,8 +87,8 @@ main(void)
 
     {
         int reuse = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse,
-                       sizeof(reuse)) < 0) {
+        if (setsockopt(
+              sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
             perror("send_data: setsockopt");
             close(sockfd);
             exit(1);

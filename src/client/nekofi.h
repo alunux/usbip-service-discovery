@@ -24,6 +24,7 @@
 
 G_DECLARE_FINAL_TYPE(NekoFi, neko_fi, NEKO, FI, GtkApplication)
 
-NekoFi* neko_fi_new(void);
+NekoFi*
+neko_fi_new(void);
 
 #endif /* __NEKOFI_H */
