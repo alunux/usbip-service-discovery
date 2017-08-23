@@ -21,7 +21,9 @@
 #include <gio/gio.h>
 #include <json.h>
 
-char*
+#define UNUSED(...) (void)(__VA_ARGS__)
+
+const char*
 discover_query_usb_desc(json_object* root, const char* key);
 void
 discover_get_json(GTask* task,

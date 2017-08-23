@@ -37,7 +37,7 @@
 #define JSON_PORT 10796
 
 static void
-sigchld_handler(int s)
+sigchld_handler(__attribute__((unused)) int s)
 {
     int saved_errno = errno;
     while (waitpid(-1, NULL, WNOHANG) > 0)

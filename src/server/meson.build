@@ -27,7 +27,6 @@ server_cflags = [
     '-O2',
     '-D_FORTIFY_SOURCE=2',
     '-fstack-protector',
-    '-pedantic',
     '-Wstrict-prototypes',
     '-Wundef',
     '-fno-common',

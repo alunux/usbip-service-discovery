@@ -32,7 +32,7 @@ struct _NekoFi {
 G_DEFINE_TYPE(NekoFi, neko_fi, GTK_TYPE_APPLICATION)
 
 static void
-neko_fi_init(NekoFi* app)
+neko_fi_init(__attribute__((unused)) NekoFi* app)
 {
 }
 
@@ -65,13 +65,16 @@ neko_fi_activate(GApplication* app)
     NekoFiWindow* win = NULL;
     GSocket* sock_event = NULL;
     GInetAddress* inetaddr = NULL;
+    GInetAddress* groupaddr = NULL;
     GSocketAddress* sockaddr = NULL;
     GError* err = NULL;
+    gboolean ret;
+    char* wifi_iface;
 
     inetaddr = g_inet_address_new_any(G_SOCKET_FAMILY_IPV4);
+    groupaddr = g_inet_address_new_from_string(NEKOFI_CAST_ADDR);
     sockaddr =
       G_SOCKET_ADDRESS(g_inet_socket_address_new(inetaddr, LISTENPORT));
-
     sock_event = g_socket_new(G_SOCKET_FAMILY_IPV4,
                               G_SOCKET_TYPE_DATAGRAM,
                               G_SOCKET_PROTOCOL_UDP,
@@ -82,19 +85,21 @@ neko_fi_activate(GApplication* app)
         exit(1);
     }
 
-    if (!g_socket_bind(sock_event, sockaddr, TRUE, &err)) {
+    ret = g_socket_bind(sock_event, sockaddr, TRUE, &err);
+    if (!ret) {
         g_print("g_socket_bind: error\n");
         exit(1);
     }
 
-    if (!g_socket_join_multicast_group(
-          sock_event,
-          g_inet_address_new_from_string(NEKOFI_CAST_ADDR),
-          FALSE,
-          find_wifi_interface(),
-          NULL)) {
+    wifi_iface = find_wifi_interface();
+    ret = g_socket_join_multicast_group(
+      sock_event, groupaddr, FALSE, wifi_iface, NULL);
+
+    if (!ret) {
         g_print("g_socket_join_multicast_group: error\n");
     }
+
+    free(wifi_iface);
 
     int fd = g_socket_get_fd(sock_event);
 

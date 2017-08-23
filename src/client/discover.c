@@ -103,23 +103,22 @@ discover_recv_usb_desc_json(char node_addr[])
     return usb_json;
 }
 
-char*
+const char*
 discover_query_usb_desc(json_object* root, const char* key)
 {
     json_object* ret_val;
 
-    if (json_object_object_get_ex(root, key, &ret_val)) {
-        return (char*)json_object_get_string(ret_val);
-    }
+    if (json_object_object_get_ex(root, key, &ret_val))
+        return json_object_get_string(ret_val);
 
     return NULL;
 }
 
 void
 discover_get_json(GTask* task,
-                  gpointer source_obj,
-                  gpointer task_data,
-                  GCancellable* cancellable)
+                  __attribute__((unused)) gpointer source_obj,
+                  __attribute__((unused)) gpointer task_data,
+                  __attribute__((unused)) GCancellable* cancellable)
 {
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
@@ -135,6 +134,7 @@ discover_get_json(GTask* task,
 
     pid_t pid;
     int fd[10][2];
+    ssize_t ret_wr;
 
     memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
     usb_json = json_object_new_object();
@@ -187,7 +187,12 @@ discover_get_json(GTask* task,
                     inet_ntoa(NekoFiGroupSock.sin_addr),
                     sizeof(node_addr[n_node]));
             close(fd[n_node][0]);
-            write(fd[n_node][1], node_addr[n_node], sizeof(node_addr[n_node]));
+
+            do {
+                ret_wr = write(
+                  fd[n_node][1], node_addr[n_node], sizeof(node_addr[n_node]));
+            } while (ret_wr != sizeof(node_addr[n_node]));
+
             close(fd[n_node][1]);
             close(sockfd);
             exit(0);
@@ -196,7 +201,12 @@ discover_get_json(GTask* task,
         if (pid != 0) {
             close(fd[n_node][1]);
             wait(NULL);
-            read(fd[n_node][0], node_addr[n_node], sizeof(node_addr[n_node]));
+
+            do {
+                ret_wr = read(
+                  fd[n_node][0], node_addr[n_node], sizeof(node_addr[n_node]));
+            } while (ret_wr != sizeof(node_addr[n_node]));
+
             close(fd[n_node][0]);
         }
 
@@ -207,9 +217,8 @@ discover_get_json(GTask* task,
     if (n_node > 0) {
         for (int i = 0; i < n_node; i++) {
             add_usb_tolist = discover_recv_usb_desc_json(node_addr[i]);
-            if (add_usb_tolist == NULL) {
+            if (add_usb_tolist == NULL)
                 continue;
-            }
 
             json_object_object_add(usb_json, node_addr[i], add_usb_tolist);
         }

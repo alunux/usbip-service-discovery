@@ -145,9 +145,11 @@ main(void)
             if (dev) {
                 path = udev_device_get_devnode(dev);
                 if (path != NULL) {
+                    /* I'm really hate these stuffs */
                     if (system("killall usb_metadata_server") == 0) {
-                        system("./usb_metadata_server &");
-                        broadcast_event();
+                        if (system("./usb_metadata_server &") == 0) {
+                            broadcast_event();
+                        }
                     }
                 }
                 udev_device_unref(dev);

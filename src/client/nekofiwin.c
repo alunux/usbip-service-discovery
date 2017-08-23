@@ -161,7 +161,8 @@ neko_fi_window_get_usb_info(gchar* node_addr,
     GtkWidget* button = NULL;
     GtkWidget* label = NULL;
     GList* iter_con = NULL;
-    gchar *devs_desc, *product, *idProduct, *idVendor, *manufact, *busid;
+    gchar* devs_desc;
+    const gchar *product, *idProduct, *idVendor, *manufact, *busid;
 
     product = discover_query_usb_desc(usb_info, "product");
     idProduct = discover_query_usb_desc(usb_info, "idProduct");

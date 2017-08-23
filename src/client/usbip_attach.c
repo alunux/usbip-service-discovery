@@ -36,7 +36,10 @@
 
 #define MAX_BUFF 100
 static int
-record_connection(char* host, char* port, char* busid, int rhport)
+record_connection(const char* host,
+                  const char* port,
+                  const char* busid,
+                  int rhport)
 {
     int fd;
     char path[PATH_MAX + 1];
@@ -110,7 +113,7 @@ import_device(int sockfd, struct usbip_usb_device* udev)
 }
 
 static int
-query_import_device(int sockfd, char* busid)
+query_import_device(int sockfd, const char* busid)
 {
     int rc;
     struct op_import_request request;
@@ -163,7 +166,7 @@ query_import_device(int sockfd, char* busid)
 }
 
 int
-check_device_state(char* host, char* busid)
+check_device_state(const char* host, const char* busid)
 {
     int sockfd;
     int rc;
@@ -205,7 +208,7 @@ check_device_state(char* host, char* busid)
 }
 
 int
-attach_device(char* host, char* busid)
+attach_device(const char* host, const char* busid)
 {
     int sockfd;
     int rc;

@@ -103,7 +103,7 @@ get_devices(void)
 
     const char* ret_path;
     const char* ret_attr;
-    char* check_busid;
+    const char* check_busid;
 
     usb_contain_json = json_object_new_array();
 

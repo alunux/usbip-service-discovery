@@ -55,9 +55,8 @@ multicast_set_ip_iface(int sockfd, struct in_addr* LocalIface)
                      IP_MULTICAST_IF,
                      (char*)LocalIface,
                      sizeof(struct in_addr));
-    if (ret < 0) {
+    if (ret < 0)
         perror("setting local interface");
-    }
 
     return ret;
 }
@@ -76,9 +75,8 @@ multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec)
                      SO_RCVTIMEO,
                      (const char*)&sock_timeout,
                      sizeof(struct timeval));
-    if (ret < 0) {
+    if (ret < 0)
         perror("setting socket timeout");
-    }
 
     return ret;
 }

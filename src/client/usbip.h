@@ -26,17 +26,17 @@
 
 typedef struct _NekoFiDevice {
     int state;
-    char* node_addr;
-    char* busid;
+    const char* node_addr;
+    const char* busid;
     int port;
 } NekoFiDevice;
 
 /* usbip commands */
 int
-attach_device(char* host, char* busid);
+attach_device(const char* host, const char* busid);
 int
-detach_port(char* port);
+detach_port(const char* port);
 int
-check_device_state(char* host, char* busid);
+check_device_state(const char* host, const char* busid);
 
 #endif /* __USBIP_H */

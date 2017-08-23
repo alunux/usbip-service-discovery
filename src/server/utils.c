@@ -25,7 +25,7 @@
 #include "utils.h"
 
 int
-modify_match_busid(char* busid, int add)
+modify_match_busid(const char* busid, int add)
 {
     char attr_name[] = "match_busid";
     char command[SYSFS_BUS_ID_SIZE + 4];

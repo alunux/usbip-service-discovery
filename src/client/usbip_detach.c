@@ -30,7 +30,7 @@
 #include "vhci_driver.h"
 
 int
-detach_port(char* port)
+detach_port(const char* port)
 {
     int ret;
     uint8_t portnum;

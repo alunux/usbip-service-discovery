@@ -268,7 +268,7 @@ usbip_net_set_v6only(int sockfd)
  * IPv6 Ready
  */
 int
-usbip_net_tcp_connect(char* hostname, char* service)
+usbip_net_tcp_connect(const char* hostname, const char* service)
 {
     struct addrinfo hints, *res, *rp;
     int sockfd;
