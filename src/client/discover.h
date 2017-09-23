@@ -15,8 +15,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DISCOVER_H
-#define __DISCOVER_H
+#ifndef DISCOVER_H
+#define DISCOVER_H
 
 #include <gio/gio.h>
 #include <json.h>
@@ -31,4 +31,4 @@ discover_get_json(GTask* task,
                   gpointer task_data,
                   GCancellable* cancellable);
 
-#endif /* __DISCOVER_H */
+#endif /* DISCOVER_H */

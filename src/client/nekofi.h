@@ -15,8 +15,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NEKOFI_H
-#define __NEKOFI_H
+#ifndef NEKOFI_H
+#define NEKOFI_H
 
 #include <gtk/gtk.h>
 
@@ -27,4 +27,4 @@ G_DECLARE_FINAL_TYPE(NekoFi, neko_fi, NEKO, FI, GtkApplication)
 NekoFi*
 neko_fi_new(void);
 
-#endif /* __NEKOFI_H */
+#endif /* NEKOFI_H */

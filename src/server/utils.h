@@ -16,10 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __UTILS_H
-#define __UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 int
 modify_match_busid(const char* busid, int add);
 
-#endif /* __UTILS_H */
+#endif /* UTILS_H */

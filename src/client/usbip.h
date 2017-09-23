@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __USBIP_H
-#define __USBIP_H
+#ifndef USBIP_H
+#define USBIP_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -39,4 +39,4 @@ detach_port(const char* port);
 int
 check_device_state(const char* host, const char* busid);
 
-#endif /* __USBIP_H */
+#endif /* USBIP_H */

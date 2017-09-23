@@ -1,5 +1,5 @@
-#ifndef _LIST_H
-#define _LIST_H
+#ifndef LIST_H
+#define LIST_H
 
 /* Stripped down implementation of linked list taken
  * from the Linux Kernel.

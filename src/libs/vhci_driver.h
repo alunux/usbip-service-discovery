@@ -2,8 +2,8 @@
  * Copyright (C) 2005-2007 Takahiro Hirofuchi
  */
 
-#ifndef __VHCI_DRIVER_H
-#define __VHCI_DRIVER_H
+#ifndef VHCI_DRIVER_H
+#define VHCI_DRIVER_H
 
 #include <libudev.h>
 #include <stdint.h>
@@ -56,4 +56,4 @@ int usbip_vhci_detach_device(uint8_t port);
 
 int usbip_vhci_imported_device_dump(struct usbip_imported_device *idev);
 
-#endif /* __VHCI_DRIVER_H */
+#endif /* VHCI_DRIVER_H */

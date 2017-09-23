@@ -15,8 +15,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NEKOFIWIN_H
-#define __NEKOFIWIN_H
+#ifndef NEKOFIWIN_H
+#define NEKOFIWIN_H
 
 #include "discover.h"
 #include "nekofi.h"
@@ -35,4 +35,4 @@ neko_fi_window_new(NekoFi* app);
 void
 neko_fi_window_update_list(NekoFiWindow* _win);
 
-#endif /* __NEKOFIWIN_H */
+#endif /* NEKOFIWIN_H */

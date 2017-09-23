@@ -15,10 +15,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DETECT_IFACE_H
-#define __DETECT_IFACE_H
+#ifndef DETECT_IFACE_H
+#define DETECT_IFACE_H
 
 const char* get_iface_addr(void);
 char* find_wifi_interface(void);
 
-#endif /* __DETECT_IFACE_H */
+#endif /* DETECT_IFACE_H */

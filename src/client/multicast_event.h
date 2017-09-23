@@ -15,8 +15,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MULTICAST_EVENT_H
-#define __BMULTICAST_EVENT_H
+#ifndef MULTICAST_EVENT_H
+#define MULTICAST_EVENT_H
 
 #include <arpa/inet.h>
 
@@ -29,4 +29,4 @@ multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec);
 int
 announce_client_event(void);
 
-#endif /* __MULTICAST_EVENT_H */
+#endif /* MULTICAST_EVENT_H */

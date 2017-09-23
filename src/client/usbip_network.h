@@ -2,8 +2,8 @@
  * Copyright (C) 2005-2007 Takahiro Hirofuchi
  */
 
-#ifndef __USBIP_NETWORK_H
-#define __USBIP_NETWORK_H
+#ifndef USBIP_NETWORK_H
+#define USBIP_NETWORK_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -203,4 +203,4 @@ usbip_net_set_v6only(int sockfd);
 int
 usbip_net_tcp_connect(const char* hostname, const char* port);
 
-#endif /* __USBIP_NETWORK_H */
+#endif /* USBIP_NETWORK_H */
