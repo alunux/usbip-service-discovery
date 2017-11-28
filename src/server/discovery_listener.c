@@ -100,8 +100,10 @@ main(void)
                    inet_ntoa(LocalSock.sin_addr));
             printf("NekoFi server: packet is %d bytes\n", status);
             printf("NekoFi server: packet contains \"%d\"\n", ack);
-            status =
-              sendto(sockfd, NULL, 0, 0, (struct sockaddr*)&LocalSock, socklen);
+            do {
+                status = sendto(
+                  sockfd, NULL, 0, 0, (struct sockaddr*)&LocalSock, socklen);
+            } while (status < 0);
         }
         printf("\n");
     }
