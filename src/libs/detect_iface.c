@@ -30,6 +30,8 @@
 
 #include "detect_iface.h"
 
+#define VM_TESTING 1
+
 static int
 check_wireless(const char* ifname, char* protocol)
 {
@@ -93,22 +95,28 @@ get_iface_addr(void)
 {
     struct ifreq ifr;
     int fd;
+#if VM_TESTING == 0
     char* iface_name;
-    
-    /* just for testing, it will be removed later */
-    const char* vm_iface = "ens3";
+#else
+    const char* iface_name = "ens3";
+#endif
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;
     
+#if VM_TESTING == 0
     iface_name = find_wifi_interface();
     if (iface_name != NULL) {
         strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
         free(iface_name);
-    } else {
-        strncpy(ifr.ifr_name, vm_iface, IFNAMSIZ - 1);
+        iface_name = NULL;
     }
+#else
+    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
+#endif
+
     ifr.ifr_name[IFNAMSIZ - 1] = '\0';
+    printf("iface: %s\n", iface_name);
     
     ioctl(fd, SIOCGIFADDR, &ifr);
     close(fd);
