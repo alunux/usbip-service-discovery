@@ -19,7 +19,7 @@
 #define DISCOVER_H
 
 #include <gio/gio.h>
-#include <json.h>
+#include <json-c/json.h>
 
 #define UNUSED(...) (void)(__VA_ARGS__)
 

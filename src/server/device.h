@@ -19,7 +19,7 @@
 #define DEVICE_H
 
 #include <errno.h>
-#include <json.h>
+#include <json-c/json.h>
 #include <libudev.h>
 #include <stdbool.h>
 #include <stdint.h>
