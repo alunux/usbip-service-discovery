@@ -33,6 +33,7 @@ struct _NekoFiWindowPrivate {
     GtkWidget* nf_mess;
     GtkWidget* scrolled;
     GtkWidget* scan_result;
+    GtkWidget* scan_button;
     GList* node_state;
     gboolean cleared;
     json_object* usb_json;
@@ -88,6 +89,12 @@ neko_fi_window_class_init(NekoFiWindowClass* class)
 
     gtk_widget_class_bind_template_child_private(
       GTK_WIDGET_CLASS(class), NekoFiWindow, scrolled);
+
+    gtk_widget_class_bind_template_child_private(
+      GTK_WIDGET_CLASS(class), NekoFiWindow, scan_button);
+
+    gtk_widget_class_bind_template_callback(GTK_WIDGET_CLASS(class),
+                                            neko_fi_window_update_list);
 
     gtk_widget_class_bind_template_child_private(
       GTK_WIDGET_CLASS(class), NekoFiWindow, scan_result);
@@ -273,6 +280,7 @@ neko_fi_window_scan_done(GObject* source_object,
 
     win = NEKO_FI_WINDOW(source_object);
     priv = neko_fi_window_get_instance_private(win);
+    gtk_widget_set_sensitive(priv->scan_button, FALSE);
 
     json_object_put(priv->usb_json);
     priv->usb_json = g_task_propagate_pointer(G_TASK(res), NULL);
@@ -309,6 +317,8 @@ neko_fi_window_scan_done(GObject* source_object,
         gtk_container_add(GTK_CONTAINER(priv->scrolled), priv->scan_result);
         priv->cleared = FALSE;
     }
+
+    gtk_widget_set_sensitive(priv->scan_button, TRUE);
 }
 
 void
@@ -326,4 +336,5 @@ neko_fi_window_update_list(NekoFiWindow* _win)
     task_scan = g_task_new(win, NULL, neko_fi_window_scan_done, con_child);
     g_task_run_in_thread(task_scan, discover_get_json);
     g_object_unref(task_scan);
+    g_print("Trigger done\n");
 }
