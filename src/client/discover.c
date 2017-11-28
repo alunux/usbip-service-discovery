@@ -166,6 +166,10 @@ discover_get_json(GTask* task,
                     0,
                     (struct sockaddr*)&NekoFiGroupSock,
                     socklen);
+    if (status < 0) {
+        perror("failed to sendto");
+        goto complete;
+    }
 
     while (1) {
         status = recvfrom(
