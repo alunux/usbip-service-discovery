@@ -280,7 +280,6 @@ neko_fi_window_scan_done(GObject* source_object,
 
     win = NEKO_FI_WINDOW(source_object);
     priv = neko_fi_window_get_instance_private(win);
-    gtk_widget_set_sensitive(priv->scan_button, FALSE);
 
     json_object_put(priv->usb_json);
     priv->usb_json = g_task_propagate_pointer(G_TASK(res), NULL);
@@ -331,6 +330,7 @@ neko_fi_window_update_list(NekoFiWindow* _win)
 
     win = NEKO_FI_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(_win)));
     priv = neko_fi_window_get_instance_private(win);
+    gtk_widget_set_sensitive(priv->scan_button, FALSE);
     con_child = gtk_container_get_children(GTK_CONTAINER(priv->scan_result));
 
     task_scan = g_task_new(win, NULL, neko_fi_window_scan_done, con_child);
