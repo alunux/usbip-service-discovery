@@ -94,18 +94,22 @@ get_iface_addr(void)
     struct ifreq ifr;
     int fd;
     char* iface_name;
-
-    iface_name = find_wifi_interface();
-    if (iface_name == NULL) {
-        return NULL;
-    }
+    
+    /* just for testing, it will be removed later */
+    const char* vm_iface = "ens3";
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
+    
+    iface_name = find_wifi_interface();
+    if (iface_name != NULL) {
+        strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
+        free(iface_name);
+    } else {
+        strncpy(ifr.ifr_name, vm_iface, IFNAMSIZ - 1);
+    }
     ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-    free(iface_name);
-
+    
     ioctl(fd, SIOCGIFADDR, &ifr);
     close(fd);
 
