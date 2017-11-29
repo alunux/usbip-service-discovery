@@ -14,9 +14,9 @@
 #include <stdint.h>
 
 extern int usbip_port;
-extern char* usbip_port_string;
+extern const char* usbip_port_string;
 void
-usbip_setup_port_number(char* arg);
+usbip_setup_port_number(const char* arg);
 
 /* ---------------------------------------------------------------------- */
 /* Common header for all the kinds of PDUs. */
@@ -201,6 +201,6 @@ usbip_net_set_keepalive(int sockfd);
 int
 usbip_net_set_v6only(int sockfd);
 int
-usbip_net_tcp_connect(char* hostname, char* port);
+usbip_net_tcp_connect(const char* hostname, const char* port);
 
 #endif /* USBIP_NETWORK_H */

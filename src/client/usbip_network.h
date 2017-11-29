@@ -14,9 +14,9 @@
 #include <stdint.h>
 
 extern int usbip_port;
-extern char* usbip_port_string;
+extern const char* usbip_port_string;
 void
-usbip_setup_port_number(char* arg);
+usbip_setup_port_number(const char* arg);
 
 /* ---------------------------------------------------------------------- */
 /* Common header for all the kinds of PDUs. */

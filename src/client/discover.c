@@ -38,7 +38,7 @@
 #define LISTENPORT 10296
 
 static int
-discover_recv_connect(char* node_addr)
+discover_recv_connect(const char* node_addr)
 {
     struct sockaddr_in serv_addr;
     int sockfd;
@@ -68,7 +68,7 @@ discover_recv_connect(char* node_addr)
 }
 
 static json_object*
-discover_recv_usb_desc_json(char node_addr[])
+discover_recv_usb_desc_json(const char node_addr[])
 {
     static json_object* usb_json;
 

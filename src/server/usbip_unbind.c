@@ -31,14 +31,14 @@
 #include "utils.h"
 
 int
-unbind_device(char* busid)
+unbind_device(const char* busid)
 {
-    char bus_type[] = "usb";
+    const char* bus_type = "usb";
     int rc, ret = -1;
 
-    char unbind_attr_name[] = "unbind";
+    const char* unbind_attr_name = "unbind";
+    const char* rebind_attr_name = "rebind";
     char unbind_attr_path[SYSFS_PATH_MAX];
-    char rebind_attr_name[] = "rebind";
     char rebind_attr_path[SYSFS_PATH_MAX];
 
     struct udev* udev;

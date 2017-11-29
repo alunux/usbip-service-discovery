@@ -46,7 +46,7 @@ sigchld_handler(__attribute__((unused)) int s)
 }
 
 static int
-sendall(int s, char* buf, uint32_t* len)
+sendall(int s, const char* buf, uint32_t* len)
 {
     uint32_t total = 0;
     uint32_t bytesleft = *len;

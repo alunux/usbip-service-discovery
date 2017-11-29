@@ -22,12 +22,9 @@
 int
 main(int argc, char* argv[])
 {
-    NekoFi* app = NULL;
-    int status = 0;
+    NekoFi* app = neko_fi_new();
+    int status = g_application_run(G_APPLICATION(app), argc, argv);
 
-    app = neko_fi_new();
-    status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
-
     return status;
 }

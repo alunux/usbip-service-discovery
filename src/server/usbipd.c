@@ -442,7 +442,7 @@ listen_all_addrinfo(struct addrinfo* ai_head, int sockfdlist[], int maxsockfd)
 }
 
 static struct addrinfo*
-do_getaddrinfo(char* host, int ai_family)
+do_getaddrinfo(const char* host, int ai_family)
 {
     struct addrinfo hints, *ai_head;
     int rc;

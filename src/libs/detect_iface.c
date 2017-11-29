@@ -33,10 +33,12 @@
 #define VM_TESTING 1
 
 static int
-check_wireless(const char* ifname, char* protocol)
+check_wireless(const char* ifname)
 {
     int sock = -1;
+    char protocol[IFNAMSIZ] = { 0 };
     struct iwreq pwrq;
+
     memset(&pwrq, 0, sizeof(pwrq));
     strncpy(pwrq.ifr_name, ifname, IFNAMSIZ);
 
@@ -46,10 +48,7 @@ check_wireless(const char* ifname, char* protocol)
     }
 
     if (ioctl(sock, SIOCGIWNAME, &pwrq) != -1) {
-        if (protocol) {
-            strncpy(protocol, pwrq.u.name, IFNAMSIZ);
-        }
-
+        strncpy(protocol, pwrq.u.name, IFNAMSIZ);
         close(sock);
         return 1;
     }
@@ -72,13 +71,10 @@ find_wifi_interface(void)
     }
 
     for (iter = iface_addr; iter != NULL; iter = iter->ifa_next) {
-        char protocol[IFNAMSIZ] = { 0 };
-
         if (iter->ifa_addr == NULL || iter->ifa_addr->sa_family != AF_PACKET) {
             continue;
         }
-
-        if (check_wireless(iter->ifa_name, protocol)) {
+        if (check_wireless(iter->ifa_name)) {
             ifa_name_len = strlen(iter->ifa_name) + 1;
             ret_iface = malloc(ifa_name_len * sizeof(char));
             strncpy(ret_iface, iter->ifa_name, ifa_name_len);
@@ -98,7 +94,7 @@ get_iface_addr(void)
 #if VM_TESTING == 0
     char* iface_name;
 #else
-    const char* iface_name = "ens3";
+    const char* iface_name = "virbr0";
 #endif
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -116,8 +112,6 @@ get_iface_addr(void)
 #endif
 
     ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-    printf("iface: %s\n", iface_name);
-    
     ioctl(fd, SIOCGIFADDR, &ifr);
     close(fd);
 

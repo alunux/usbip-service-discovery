@@ -157,7 +157,7 @@ neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
 }
 
 static GtkWidget*
-neko_fi_window_get_usb_info(gchar* node_addr,
+neko_fi_window_get_usb_info(const gchar* node_addr,
                             json_object* usb_info,
                             NekoFiWindow* _win)
 {
@@ -336,5 +336,4 @@ neko_fi_window_update_list(NekoFiWindow* _win)
     task_scan = g_task_new(win, NULL, neko_fi_window_scan_done, con_child);
     g_task_run_in_thread(task_scan, discover_get_json);
     g_object_unref(task_scan);
-    g_print("Trigger done\n");
 }

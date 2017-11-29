@@ -33,10 +33,10 @@
 #include "usbip_network.h"
 
 int usbip_port = 3240;
-char* usbip_port_string = "3240";
+const char* usbip_port_string = "3240";
 
 void
-usbip_setup_port_number(char* arg)
+usbip_setup_port_number(const char* arg)
 {
     dbg("parsing port arg '%s'", arg);
     char* end;
@@ -268,7 +268,7 @@ usbip_net_set_v6only(int sockfd)
  * IPv6 Ready
  */
 int
-usbip_net_tcp_connect(char* hostname, char* service)
+usbip_net_tcp_connect(const char* hostname, const char* service)
 {
     struct addrinfo hints, *res, *rp;
     int sockfd;
