@@ -19,7 +19,7 @@
 
 <interface>
   <!-- interface-requires gtk+ 3.8 -->
-  <template class="NekoFiWindow" parent="GtkApplicationWindow">
+  <template class="UsbipAppWin" parent="GtkApplicationWindow">
     <property name="title" translatable="yes">NekoFi</property>
     <property name="default-width">600</property>
     <property name="default-height">400</property>
@@ -31,7 +31,7 @@
           <property name="show-close-button">True</property>
           <child>
               <object class="GtkButton" id="scan_button">
-                  <signal name="clicked" handler="neko_fi_window_update_list"/>
+                  <signal name="clicked" handler="usbip_app_win_update_list"/>
                   <property name="visible">True</property>
                   <style>
                       <class name="image-button"/>

@@ -31,7 +31,7 @@ libs_headers = [
 install_headers(libs_headers)
 
 usbip = shared_library(
-    'nekofi', sources,
+    'usbip_app_libs', sources,
     c_args: extra_cflags,
     version : ver,
     dependencies : deps,

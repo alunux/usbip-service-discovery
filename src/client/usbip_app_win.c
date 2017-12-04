@@ -19,17 +19,17 @@
 
 #include "discover.h"
 #include "multicast_event.h"
-#include "nekofi.h"
-#include "nekofiwin.h"
 #include "usbip.h"
+#include "usbip_app.h"
+#include "usbip_app_win.h"
 
-struct _NekoFiWindow {
+struct _UsbipAppWin {
     GtkApplicationWindow parent;
 };
 
-typedef struct _NekoFiWindowPrivate NekoFiWindowPrivate;
+typedef struct _UsbipAppWinPrivate UsbipAppWinPrivate;
 
-struct _NekoFiWindowPrivate {
+struct _UsbipAppWinPrivate {
     GtkWidget* nf_mess;
     GtkWidget* scrolled;
     GtkWidget* scan_result;
@@ -37,83 +37,83 @@ struct _NekoFiWindowPrivate {
     GList* node_state;
     gboolean cleared;
     json_object* usb_json;
-    NekoFiDevice* dev_tmp;
+    UsbipAppDevice* dev_tmp;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE(NekoFiWindow,
-                           neko_fi_window,
+G_DEFINE_TYPE_WITH_PRIVATE(UsbipAppWin,
+                           usbip_app_win,
                            GTK_TYPE_APPLICATION_WINDOW)
 
 static void
-neko_fi_window_init(NekoFiWindow* win)
+usbip_app_win_init(UsbipAppWin* win)
 {
     gtk_widget_init_template(GTK_WIDGET(win));
 }
 
 static void
-neko_fi_window_dispose(GObject* object)
+usbip_app_win_dispose(GObject* object)
 {
-    NekoFiWindow* win = NULL;
-    NekoFiWindowPrivate* priv = NULL;
+    UsbipAppWin* win = NULL;
+    UsbipAppWinPrivate* priv = NULL;
 
-    win = NEKO_FI_WINDOW(object);
-    priv = neko_fi_window_get_instance_private(win);
+    win = USBIP_APP_WIN(object);
+    priv = usbip_app_win_get_instance_private(win);
 
     g_clear_object(&priv->scan_result);
 
-    G_OBJECT_CLASS(neko_fi_window_parent_class)->dispose(object);
+    G_OBJECT_CLASS(usbip_app_win_parent_class)->dispose(object);
 }
 
 static void
-neko_fi_window_finalize(GObject* object)
+usbip_app_win_finalize(GObject* object)
 {
-    NekoFiWindow* win = NULL;
-    NekoFiWindowPrivate* priv = NULL;
+    UsbipAppWin* win = NULL;
+    UsbipAppWinPrivate* priv = NULL;
 
-    win = NEKO_FI_WINDOW(object);
-    priv = neko_fi_window_get_instance_private(win);
+    win = USBIP_APP_WIN(object);
+    priv = usbip_app_win_get_instance_private(win);
 
     json_object_put(priv->usb_json);
 
-    G_OBJECT_CLASS(neko_fi_window_parent_class)->finalize(object);
+    G_OBJECT_CLASS(usbip_app_win_parent_class)->finalize(object);
 }
 
 static void
-neko_fi_window_class_init(NekoFiWindowClass* class)
+usbip_app_win_class_init(UsbipAppWinClass* class)
 {
-    G_OBJECT_CLASS(class)->dispose = neko_fi_window_dispose;
-    G_OBJECT_CLASS(class)->finalize = neko_fi_window_finalize;
+    G_OBJECT_CLASS(class)->dispose = usbip_app_win_dispose;
+    G_OBJECT_CLASS(class)->finalize = usbip_app_win_finalize;
 
-    gtk_widget_class_set_template_from_resource(GTK_WIDGET_CLASS(class),
-                                                "/org/alunux/nekofi/window.ui");
-
-    gtk_widget_class_bind_template_child_private(
-      GTK_WIDGET_CLASS(class), NekoFiWindow, scrolled);
+    gtk_widget_class_set_template_from_resource(
+      GTK_WIDGET_CLASS(class), "/org/alunux/usbipapp/window.ui");
 
     gtk_widget_class_bind_template_child_private(
-      GTK_WIDGET_CLASS(class), NekoFiWindow, scan_button);
+      GTK_WIDGET_CLASS(class), UsbipAppWin, scrolled);
+
+    gtk_widget_class_bind_template_child_private(
+      GTK_WIDGET_CLASS(class), UsbipAppWin, scan_button);
 
     gtk_widget_class_bind_template_callback(GTK_WIDGET_CLASS(class),
-                                            neko_fi_window_update_list);
+                                            usbip_app_win_update_list);
 
     gtk_widget_class_bind_template_child_private(
-      GTK_WIDGET_CLASS(class), NekoFiWindow, scan_result);
+      GTK_WIDGET_CLASS(class), UsbipAppWin, scan_result);
 }
 
-NekoFiWindow*
-neko_fi_window_new(NekoFi* app)
+UsbipAppWin*
+usbip_app_win_new(UsbipApp* app)
 {
-    return g_object_new(NEKO_FI_WINDOW_TYPE, "application", app, NULL);
+    return g_object_new(USBIP_APP_WIN_TYPE, "application", app, NULL);
 }
 
 static GtkWidget*
-neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
+usbip_app_win_control_usb_remote(GtkWidget* button, gpointer user_data)
 {
-    NekoFiWindow* win = NULL;
-    NekoFiWindowPrivate* priv = NULL;
+    UsbipAppWin* win = NULL;
+    UsbipAppWinPrivate* priv = NULL;
 
-    win = NEKO_FI_WINDOW(user_data);
-    priv = neko_fi_window_get_instance_private(win);
+    win = USBIP_APP_WIN(user_data);
+    priv = usbip_app_win_get_instance_private(win);
 
     int port, ret;
     char port_s[127];
@@ -157,12 +157,12 @@ neko_fi_window_control_usb_remote(GtkWidget* button, gpointer user_data)
 }
 
 static GtkWidget*
-neko_fi_window_get_usb_info(const gchar* node_addr,
-                            json_object* usb_info,
-                            NekoFiWindow* _win)
+usbip_app_win_get_usb_info(const gchar* node_addr,
+                           json_object* usb_info,
+                           UsbipAppWin* _win)
 {
-    NekoFiWindow* win = NULL;
-    NekoFiWindowPrivate* priv = NULL;
+    UsbipAppWin* win = NULL;
+    UsbipAppWinPrivate* priv = NULL;
     GtkWidget* button_box = NULL;
     GtkWidget* devs_info = NULL;
     GtkWidget* button = NULL;
@@ -177,10 +177,10 @@ neko_fi_window_get_usb_info(const gchar* node_addr,
     manufact = discover_query_usb_desc(usb_info, "manufact");
     busid = discover_query_usb_desc(usb_info, "busid");
 
-    win = NEKO_FI_WINDOW(_win);
-    priv = neko_fi_window_get_instance_private(win);
+    win = USBIP_APP_WIN(_win);
+    priv = usbip_app_win_get_instance_private(win);
 
-    priv->dev_tmp = g_new(NekoFiDevice, 1);
+    priv->dev_tmp = g_new(UsbipAppDevice, 1);
     priv->dev_tmp->node_addr = node_addr;
     priv->dev_tmp->busid = busid;
 
@@ -224,7 +224,7 @@ neko_fi_window_get_usb_info(const gchar* node_addr,
     gtk_box_set_center_widget(GTK_BOX(button_box), button);
 
     g_signal_connect(
-      button, "clicked", G_CALLBACK(neko_fi_window_control_usb_remote), win);
+      button, "clicked", G_CALLBACK(usbip_app_win_control_usb_remote), win);
 
     gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
     gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
@@ -234,14 +234,14 @@ neko_fi_window_get_usb_info(const gchar* node_addr,
 }
 
 static void
-neko_fi_window_clear(NekoFiWindow* win)
+usbip_app_win_clear(UsbipAppWin* win)
 {
-    NekoFiWindowPrivate* priv = NULL;
+    UsbipAppWinPrivate* priv = NULL;
     GList* con_child = NULL;
     GList* iter_con = NULL;
     gchar* no_mess = NULL;
 
-    priv = neko_fi_window_get_instance_private(win);
+    priv = usbip_app_win_get_instance_private(win);
     con_child = gtk_container_get_children(GTK_CONTAINER(priv->scrolled));
 
     for (iter_con = con_child; iter_con != NULL;
@@ -266,20 +266,20 @@ neko_fi_window_clear(NekoFiWindow* win)
 }
 
 static void
-neko_fi_window_scan_done(GObject* source_object,
-                         GAsyncResult* res,
-                         gpointer user_data)
+usbip_app_win_scan_done(GObject* source_object,
+                        GAsyncResult* res,
+                        gpointer user_data)
 {
-    NekoFiWindow* win = NULL;
-    NekoFiWindowPrivate* priv = NULL;
+    UsbipAppWin* win = NULL;
+    UsbipAppWinPrivate* priv = NULL;
 
     GtkWidget* devs_info = NULL;
     GList* iter_con = NULL;
     json_object* iterator = NULL;
     int count_dev = 0;
 
-    win = NEKO_FI_WINDOW(source_object);
-    priv = neko_fi_window_get_instance_private(win);
+    win = USBIP_APP_WIN(source_object);
+    priv = usbip_app_win_get_instance_private(win);
 
     json_object_put(priv->usb_json);
     priv->usb_json = g_task_propagate_pointer(G_TASK(res), NULL);
@@ -298,7 +298,7 @@ neko_fi_window_scan_done(GObject* source_object,
             for (int i = 0; i < json_object_array_length(devices); i++) {
                 iterator = json_object_array_get_idx(devices, i);
                 devs_info =
-                  neko_fi_window_get_usb_info(node_addr, iterator, win);
+                  usbip_app_win_get_usb_info(node_addr, iterator, win);
                 gtk_list_box_prepend(GTK_LIST_BOX(priv->scan_result),
                                      devs_info);
                 count_dev++;
@@ -310,7 +310,7 @@ neko_fi_window_scan_done(GObject* source_object,
     gtk_widget_show(priv->scan_result);
 
     if (count_dev == 0) {
-        neko_fi_window_clear(win);
+        usbip_app_win_clear(win);
     } else if (priv->cleared) {
         gtk_container_remove(GTK_CONTAINER(priv->scrolled), priv->nf_mess);
         gtk_container_add(GTK_CONTAINER(priv->scrolled), priv->scan_result);
@@ -321,19 +321,19 @@ neko_fi_window_scan_done(GObject* source_object,
 }
 
 void
-neko_fi_window_update_list(NekoFiWindow* _win)
+usbip_app_win_update_list(UsbipAppWin* _win)
 {
-    NekoFiWindow* win = NULL;
-    NekoFiWindowPrivate* priv = NULL;
+    UsbipAppWin* win = NULL;
+    UsbipAppWinPrivate* priv = NULL;
     GList* con_child = NULL;
     GTask* task_scan = NULL;
 
-    win = NEKO_FI_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(_win)));
-    priv = neko_fi_window_get_instance_private(win);
+    win = USBIP_APP_WIN(gtk_widget_get_toplevel(GTK_WIDGET(_win)));
+    priv = usbip_app_win_get_instance_private(win);
     gtk_widget_set_sensitive(priv->scan_button, FALSE);
     con_child = gtk_container_get_children(GTK_CONTAINER(priv->scan_result));
 
-    task_scan = g_task_new(win, NULL, neko_fi_window_scan_done, con_child);
+    task_scan = g_task_new(win, NULL, usbip_app_win_scan_done, con_child);
     g_task_run_in_thread(task_scan, discover_get_json);
     g_object_unref(task_scan);
 }

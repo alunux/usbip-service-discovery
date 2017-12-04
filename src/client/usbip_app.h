@@ -15,24 +15,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NEKOFIWIN_H
-#define NEKOFIWIN_H
+#ifndef _USBIP_APP_H
+#define _USBIP_APP_H
 
-#include "discover.h"
-#include "nekofi.h"
 #include <gtk/gtk.h>
 
-#define NEKO_FI_WINDOW_TYPE (neko_fi_window_get_type())
+#define USBIP_APP_TYPE (usbip_app_get_type())
 
-G_DECLARE_FINAL_TYPE(NekoFiWindow,
-                     neko_fi_window,
-                     NEKO,
-                     FI_WINDOW,
-                     GtkApplicationWindow)
+G_DECLARE_FINAL_TYPE(UsbipApp, usbip_app, USBIP, APP, GtkApplication)
 
-NekoFiWindow*
-neko_fi_window_new(NekoFi* app);
-void
-neko_fi_window_update_list(NekoFiWindow* _win);
+UsbipApp*
+usbip_app_new(void);
 
-#endif /* NEKOFIWIN_H */
+#endif /* _USBIP_APP_H */

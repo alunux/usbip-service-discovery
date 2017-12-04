@@ -3,7 +3,7 @@
 int
 main(void)
 {
-    char* arguments[] = { "pkexec", "nekofi-client" };
+    char* arguments[] = { "pkexec", "usbip-app-client" };
     g_spawn_sync("/",
                  arguments,
                  g_get_environ(),

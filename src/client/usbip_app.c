@@ -19,27 +19,27 @@
 #include <gtk/gtk.h>
 
 #include "detect_iface.h"
-#include "nekofi.h"
-#include "nekofiwin.h"
+#include "usbip_app.h"
+#include "usbip_app_win.h"
 
 #define USBIP_GROUP_ADDR "225.10.10.1"
 #define LISTENPORT 10297
 
-struct _NekoFi {
+struct _UsbipApp {
     GtkApplication parent;
 };
 
-G_DEFINE_TYPE(NekoFi, neko_fi, GTK_TYPE_APPLICATION)
+G_DEFINE_TYPE(UsbipApp, usbip_app, GTK_TYPE_APPLICATION)
 
 static void
-neko_fi_init(__attribute__((unused)) NekoFi* app)
+usbip_app_init(__attribute__((unused)) UsbipApp* app)
 {
 }
 
 static gboolean
 gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
 {
-    NekoFiWindow* win = NULL;
+    UsbipAppWin* win = NULL;
     GError* error = NULL;
     char buf[1024];
     gsize bytes_read;
@@ -53,16 +53,16 @@ gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
 
     g_print("Ada perubahan device\n");
 
-    win = NEKO_FI_WINDOW(data);
-    neko_fi_window_update_list(win);
+    win = USBIP_APP_WIN(data);
+    usbip_app_win_update_list(win);
 
     return TRUE;
 }
 
 static void
-neko_fi_activate(GApplication* app)
+usbip_app_activate(GApplication* app)
 {
-    NekoFiWindow* win = NULL;
+    UsbipAppWin* win = NULL;
     GSocket* sock_event = NULL;
     GInetAddress* inetaddr = NULL;
     GInetAddress* groupaddr = NULL;
@@ -103,8 +103,8 @@ neko_fi_activate(GApplication* app)
 
     int fd = g_socket_get_fd(sock_event);
 
-    win = neko_fi_window_new(NEKO_FI(app));
-    neko_fi_window_update_list(win);
+    win = usbip_app_win_new(USBIP_APP(app));
+    usbip_app_win_update_list(win);
     gtk_window_present(GTK_WINDOW(win));
 
     GIOChannel* channel = g_io_channel_unix_new(fd);
@@ -113,17 +113,17 @@ neko_fi_activate(GApplication* app)
 }
 
 static void
-neko_fi_class_init(NekoFiClass* class)
+usbip_app_class_init(UsbipAppClass* class)
 {
-    G_APPLICATION_CLASS(class)->activate = neko_fi_activate;
+    G_APPLICATION_CLASS(class)->activate = usbip_app_activate;
 }
 
-NekoFi*
-neko_fi_new(void)
+UsbipApp*
+usbip_app_new(void)
 {
-    return g_object_new(NEKO_FI_TYPE,
+    return g_object_new(USBIP_APP_TYPE,
                         "application-id",
-                        "org.alunux.nekofi",
+                        "org.alunux.usbipapp",
                         "flags",
                         G_APPLICATION_FLAGS_NONE,
                         NULL);

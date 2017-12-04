@@ -24,12 +24,12 @@
 #include "config.h"
 #endif
 
-typedef struct _NekoFiDevice {
+typedef struct _UsbipAppDevice {
     int state;
     const char* node_addr;
     const char* busid;
     int port;
-} NekoFiDevice;
+} UsbipAppDevice;
 
 /* usbip commands */
 int

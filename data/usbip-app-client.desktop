@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=USB/IP Service Discovery
+Categories=Utility;
+Exec=usbip-app-pkexec
+Icon=media-removable
+Terminal=false
+Type=Application
+Comment=USB/IP service discovery client

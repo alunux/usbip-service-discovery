@@ -1,23 +1,23 @@
-nekofi_res = gnome.compile_resources(
-  'nekofi-res', 'nekofi.gresource.xml',
+usbip_app_res = gnome.compile_resources(
+  'usbip_app-res', 'usbip_app.gresource.xml',
   source_dir : '.',
-  c_name : 'nekofi'
+  c_name : 'usbip_app'
 )
 
 frontend_src = [
     'main.c',
     'multicast_event.c',
     'discover.c',
-    'nekofi.c',
-    'nekofiwin.c',
+    'usbip_app.c',
+    'usbip_app_win.c',
     'usbip_attach.c',
     'usbip_detach.c',
     'usbip_network.c',
-    nekofi_res,
+    usbip_app_res,
 ]
 
 frontend_pkexec_src = [
-    'nekofi-client-pkexec.c',
+    'usbip_app_pkexec.c',
 ]
 
 frontend_requires = [
@@ -47,7 +47,7 @@ extra_inc = [
 ]
 
 executable(
-    'nekofi-client', frontend_src,
+    'usbip-app-client', frontend_src,
     c_args: frontend_cflags,
     dependencies: frontend_requires,
     include_directories: include_directories(extra_inc),
@@ -56,7 +56,7 @@ executable(
 )
 
 executable(
-    'nekofi-client-pkexec', frontend_pkexec_src,
+    'usbip-app-pkexec', frontend_pkexec_src,
     c_args: frontend_cflags,
     dependencies: require_glib,
     install : true,
