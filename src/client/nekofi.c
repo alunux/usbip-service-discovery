@@ -22,7 +22,7 @@
 #include "nekofi.h"
 #include "nekofiwin.h"
 
-#define NEKOFI_CAST_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "225.10.10.1"
 #define LISTENPORT 10297
 
 struct _NekoFi {
@@ -72,7 +72,7 @@ neko_fi_activate(GApplication* app)
     char* wifi_iface;
 
     inetaddr = g_inet_address_new_any(G_SOCKET_FAMILY_IPV4);
-    groupaddr = g_inet_address_new_from_string(NEKOFI_CAST_ADDR);
+    groupaddr = g_inet_address_new_from_string(USBIP_GROUP_ADDR);
     sockaddr =
       G_SOCKET_ADDRESS(g_inet_socket_address_new(inetaddr, LISTENPORT));
     sock_event = g_socket_new(G_SOCKET_FAMILY_IPV4,

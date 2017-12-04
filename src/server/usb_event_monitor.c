@@ -33,7 +33,7 @@
 
 #include "detect_iface.h"
 
-#define NEKOFI_CAST_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "225.10.10.1"
 #define LISTENPORT 10297
 
 static void
@@ -60,7 +60,7 @@ broadcast_event(void)
 
     NekoFiGroupSock.sin_family = AF_INET;
     NekoFiGroupSock.sin_port = htons(LISTENPORT);
-    NekoFiGroupSock.sin_addr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
+    NekoFiGroupSock.sin_addr.s_addr = inet_addr(USBIP_GROUP_ADDR);
 
     {
         char reuse = '0';

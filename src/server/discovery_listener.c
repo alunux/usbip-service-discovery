@@ -28,7 +28,7 @@
 
 #include "detect_iface.h"
 
-#define NEKOFI_CAST_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "225.10.10.1"
 #define LISTENPORT 10296
 
 int
@@ -73,7 +73,7 @@ main(void)
         exit(1);
     }
 
-    NekoFiGroup.imr_multiaddr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
+    NekoFiGroup.imr_multiaddr.s_addr = inet_addr(USBIP_GROUP_ADDR);
     NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr());
 
     if (setsockopt(sockfd,

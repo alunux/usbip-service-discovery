@@ -26,7 +26,7 @@
 #include "detect_iface.h"
 #include "multicast_event.h"
 
-#define NEKOFI_CAST_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "225.10.10.1"
 #define LISTENPORT 10297
 
 int
@@ -108,7 +108,7 @@ announce_client_event(void)
 
     NekoFiGroupSock.sin_family = AF_INET;
     NekoFiGroupSock.sin_port = htons(LISTENPORT);
-    NekoFiGroupSock.sin_addr.s_addr = inet_addr(NEKOFI_CAST_ADDR);
+    NekoFiGroupSock.sin_addr.s_addr = inet_addr(USBIP_GROUP_ADDR);
     LocalIface.s_addr = inet_addr(iface_name);
 
     multicast_set_ip_iface(sockfd, &LocalIface);
