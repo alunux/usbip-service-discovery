@@ -141,9 +141,10 @@ usbip_app_win_control_usb_remote(GtkWidget* button, gpointer user_data)
         snprintf(port_s, sizeof(port_s), "%d", priv->dev_tmp->port);
         ret = detach_port(port_s);
         if (ret < 0) {
-            g_print("Can't detach %s at %s\n",
+            g_print("Can't detach %s at %s from port %s\n",
                     priv->dev_tmp->busid,
-                    priv->dev_tmp->node_addr);
+                    priv->dev_tmp->node_addr,
+                    port_s);
         } else {
             g_print("Detach: %s at %s\n",
                     priv->dev_tmp->busid,
