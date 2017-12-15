@@ -51,31 +51,31 @@ usbip_app_win_init(UsbipAppWin* win)
 }
 
 static void
-usbip_app_win_dispose(GObject* object)
+usbip_app_win_dispose(GObject* obj)
 {
     UsbipAppWin* win = NULL;
     UsbipAppWinPrivate* priv = NULL;
 
-    win = USBIP_APP_WIN(object);
+    win = USBIP_APP_WIN(obj);
     priv = usbip_app_win_get_instance_private(win);
 
     g_clear_object(&priv->scan_result);
 
-    G_OBJECT_CLASS(usbip_app_win_parent_class)->dispose(object);
+    G_OBJECT_CLASS(usbip_app_win_parent_class)->dispose(obj);
 }
 
 static void
-usbip_app_win_finalize(GObject* object)
+usbip_app_win_finalize(GObject* obj)
 {
     UsbipAppWin* win = NULL;
     UsbipAppWinPrivate* priv = NULL;
 
-    win = USBIP_APP_WIN(object);
+    win = USBIP_APP_WIN(obj);
     priv = usbip_app_win_get_instance_private(win);
 
     json_object_put(priv->usb_json);
 
-    G_OBJECT_CLASS(usbip_app_win_parent_class)->finalize(object);
+    G_OBJECT_CLASS(usbip_app_win_parent_class)->finalize(obj);
 }
 
 static void
@@ -134,7 +134,8 @@ usbip_app_win_control_usb_remote(GtkWidget* button, gpointer user_data)
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
             priv->dev_tmp->port = port;
             priv->node_state = g_list_append(priv->node_state, busid);
-            announce_client_event();
+            if (announce_client_event() >= 0)
+                g_print("Attach: Announcement success\n");
         }
     } else {
         snprintf(port_s, sizeof(port_s), "%d", priv->dev_tmp->port);
@@ -149,7 +150,8 @@ usbip_app_win_control_usb_remote(GtkWidget* button, gpointer user_data)
                     priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
             priv->node_state = g_list_remove(priv->node_state, busid);
-            announce_client_event();
+            if (announce_client_event() >= 0)
+                g_print("Detach: Announcement success\n");
         }
     }
 

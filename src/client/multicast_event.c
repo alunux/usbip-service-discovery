@@ -88,6 +88,7 @@ announce_client_event(void)
     struct sockaddr_in NekoFiGroupSock;
 
     int sockfd;
+    int ret = 0;
     char ack[] = "1";
     const char* iface_name;
     socklen_t socklen;
@@ -115,13 +116,15 @@ announce_client_event(void)
     multicast_set_socket_timeout(sockfd, 1, 0);
 
     socklen = sizeof(NekoFiGroupSock);
-    sendto(sockfd,
-           &ack,
-           strlen(ack),
-           0,
-           (struct sockaddr*)&NekoFiGroupSock,
-           socklen);
+    if ((ret = sendto(sockfd,
+                      &ack,
+                      strlen(ack),
+                      0,
+                      (struct sockaddr*)&NekoFiGroupSock,
+                      socklen)) < 0) {
+        printf("multicast_event: sendto error\n");
+    }
     close(sockfd);
 
-    return 0;
+    return ret;
 }
