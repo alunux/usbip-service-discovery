@@ -2,6 +2,9 @@
  * Copyright (C) 2017 La Ode Muh. Fadlun Akbar <fadlun.net@gmail.com>
  *               2011 matt mooney <mfm@muteddisk.com>
  *               2005-2007 Takahiro Hirofuchi
+ * Copyright (C) 2015-2016 Samsung Electronics
+ *               Igor Kotrasinski <i.kotrasinsk@samsung.com>
+ *               Krzysztof Opasiak <k.opasiak@samsung.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,31 +88,39 @@ import_device(int sockfd, struct usbip_usb_device* udev)
 {
     int rc;
     int port;
+    uint32_t speed = udev->speed;
 
     rc = usbip_vhci_driver_open();
     if (rc < 0) {
         err("open vhci_driver");
-        return -1;
+        goto err_out;
     }
 
-    port = usbip_vhci_get_free_port();
-    if (port < 0) {
-        err("no free port");
-        usbip_vhci_driver_close();
-        return -1;
-    }
+    do {
+        port = usbip_vhci_get_free_port(speed);
+        if (port < 0) {
+            err("no free port");
+            goto err_driver_close;
+        }
 
-    rc = usbip_vhci_attach_device(
-      port, sockfd, udev->busnum, udev->devnum, udev->speed);
-    if (rc < 0) {
-        err("import device");
-        usbip_vhci_driver_close();
-        return -1;
-    }
+        dbg("got free port %d", port);
+
+        rc = usbip_vhci_attach_device(
+          port, sockfd, udev->busnum, udev->devnum, udev->speed);
+        if (rc < 0 && errno != EBUSY) {
+            err("import device");
+            goto err_driver_close;
+        }
+    } while (rc < 0);
 
     usbip_vhci_driver_close();
 
     return port;
+
+err_driver_close:
+    usbip_vhci_driver_close();
+err_out:
+    return -1;
 }
 
 static int
