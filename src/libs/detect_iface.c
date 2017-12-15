@@ -30,7 +30,7 @@
 
 #include "detect_iface.h"
 
-#define VM_TESTING 1
+#define VM_TESTING 0
 
 static int
 check_wireless(const char* ifname)
