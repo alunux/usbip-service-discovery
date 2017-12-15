@@ -23,10 +23,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <getopt.h>
-
+#include "device.h"
 #include "sysfs_utils.h"
-#include "usbip.h"
 #include "usbip_common.h"
 #include "utils.h"
 

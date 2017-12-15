@@ -11,6 +11,7 @@ usb_metadata_server_src = [
     'usb_metadata_server.c',
     'device.c',
     'usbip_bind.c',
+    'usbip_unbind.c',
     'utils.c',
 ]
 

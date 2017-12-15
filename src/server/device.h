@@ -34,5 +34,7 @@ json_object*
 get_devices(void);
 int
 bind_device(const char* busid);
+int
+unbind_device(const char* busid);
 
 #endif /* DEVICE_H */

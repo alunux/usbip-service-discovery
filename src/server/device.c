@@ -93,6 +93,21 @@ pass_raspi_fast_ethernet(struct udev_device* dev)
     return -1;
 }
 
+static int
+reset_bind_device(const char* busid)
+{
+    if (unbind_device(busid) < 0) {
+        printf("reset_bind_device: error: unbinding_device %s\n", busid);
+    }
+
+    if (bind_device(busid) < 0) {
+        printf("reset_bind_device: error: binding_device %s\n", busid);
+        return -1;
+    }
+
+    return 0;
+}
+
 json_object*
 get_devices(void)
 {
@@ -147,7 +162,7 @@ get_devices(void)
         json_object_object_add(
           usb_item_json, "busid", json_object_new_string(ret_attr));
 
-        bind_device(check_busid);
+        reset_bind_device(check_busid);
 
         ret_attr = udev_device_get_sysattr_value(dev, "manufacturer");
         if (ret_attr != NULL) {
