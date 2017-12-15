@@ -19,8 +19,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef USBIP_HOST_DRIVER_H
-#define USBIP_HOST_DRIVER_H
+#ifndef __USBIP_HOST_DRIVER_H
+#define __USBIP_HOST_DRIVER_H
 
 #include <stdint.h>
 #include "usbip_common.h"
@@ -29,4 +29,4 @@
 
 extern struct usbip_host_driver host_driver;
 
-#endif /* USBIP_HOST_DRIVER_H */
+#endif /* __USBIP_HOST_DRIVER_H */

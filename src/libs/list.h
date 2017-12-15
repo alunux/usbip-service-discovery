@@ -1,5 +1,6 @@
-#ifndef LIST_H
-#define LIST_H
+/* SPDX-License-Identifier: GPL-2.0 */
+#ifndef _LIST_H
+#define _LIST_H
 
 /* Stripped down implementation of linked list taken
  * from the Linux Kernel.

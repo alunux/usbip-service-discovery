@@ -21,8 +21,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef USBIP_DEVICE_DRIVER_H
-#define USBIP_DEVICE_DRIVER_H
+#ifndef __USBIP_DEVICE_DRIVER_H
+#define __USBIP_DEVICE_DRIVER_H
 
 #include <stdint.h>
 #include "usbip_common.h"
@@ -31,4 +31,4 @@
 
 extern struct usbip_host_driver device_driver;
 
-#endif /* USBIP_DEVICE_DRIVER_H */
+#endif /* __USBIP_DEVICE_DRIVER_H */

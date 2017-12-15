@@ -21,8 +21,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef USBIP_HOST_COMMON_H
-#define USBIP_HOST_COMMON_H
+#ifndef __USBIP_HOST_COMMON_H
+#define __USBIP_HOST_COMMON_H
 
 #include <stdint.h>
 #include <libudev.h>
@@ -101,4 +101,4 @@ int usbip_export_device(struct usbip_exported_device *edev, int sockfd);
 struct usbip_exported_device *usbip_generic_get_device(
 		struct usbip_host_driver *hdriver, int num);
 
-#endif /* USBIP_HOST_COMMON_H */
+#endif /* __USBIP_HOST_COMMON_H */

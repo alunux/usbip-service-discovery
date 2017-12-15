@@ -1,9 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (C) 2005-2007 Takahiro Hirofuchi
  */
 
-#ifndef USBIP_COMMON_H
-#define USBIP_COMMON_H
+#ifndef __USBIP_COMMON_H
+#define __USBIP_COMMON_H
 
 #include <libudev.h>
 
@@ -137,4 +138,4 @@ void usbip_names_get_product(char *buff, size_t size, uint16_t vendor,
 void usbip_names_get_class(char *buff, size_t size, uint8_t class,
 			   uint8_t subclass, uint8_t protocol);
 
-#endif /* USBIP_COMMON_H */
+#endif /* __USBIP_COMMON_H */

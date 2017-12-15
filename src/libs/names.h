@@ -23,8 +23,8 @@
  *	       - names_free() is added.
  */
 
-#ifndef NAMES_H
-#define NAMES_H
+#ifndef _NAMES_H
+#define _NAMES_H
 
 #include <sys/types.h>
 
@@ -38,4 +38,4 @@ extern const char *names_protocol(u_int8_t classid, u_int8_t subclassid,
 extern int  names_init(char *n);
 extern void names_free(void);
 
-#endif /* NAMES_H */
+#endif /* _NAMES_H */
