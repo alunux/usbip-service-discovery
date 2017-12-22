@@ -25,42 +25,42 @@
     <property name="default-height">400</property>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="header">
-          <property name="title">USB Device in Your Area</property>
-          <property name="has-subtitle">False</property>
+        <property name="title">USB Device in Your Area</property>
+        <property name="has-subtitle">False</property>
+        <property name="visible">True</property>
+        <property name="show-close-button">True</property>
+        <child>
+          <object class="GtkButton" id="scan_button">
+          <signal name="clicked" handler="usbip_app_win_update_list"/>
           <property name="visible">True</property>
-          <property name="show-close-button">True</property>
+          <style>
+            <class name="image-button"/>
+          </style>
           <child>
-              <object class="GtkButton" id="scan_button">
-                  <signal name="clicked" handler="usbip_app_win_update_list"/>
-                  <property name="visible">True</property>
-                  <style>
-                      <class name="image-button"/>
-                  </style>
-                  <child>
-                      <object class="GtkImage" id="scan_icon">
-                          <property name="visible">True</property>
-                          <property name="icon-name">view-refresh-symbolic</property>
-                          <property name="icon-size">1</property>
-                      </object>
-                  </child>
-              </object>
-              <packing>
-                  <property name="pack-type">end</property>
-              </packing>
+            <object class="GtkImage" id="scan_icon">
+              <property name="visible">True</property>
+              <property name="icon-name">view-refresh-symbolic</property>
+              <property name="icon-size">1</property>
+            </object>
           </child>
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+          </packing>
+        </child>
       </object>
     </child>
     <child>
-        <object class="GtkScrolledWindow" id="scrolled">
-        <property name="visible">True</property>
-        <property name="hscrollbar-policy">GTK_POLICY_NEVER</property>
-        <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
-            <child>
-                <object class="GtkListBox" id="scan_result">
-                    <property name="visible">False</property>
-                </object>
-            </child>
+      <object class="GtkScrolledWindow" id="scrolled">
+      <property name="visible">True</property>
+      <property name="hscrollbar-policy">GTK_POLICY_NEVER</property>
+      <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
+      <child>
+        <object class="GtkListBox" id="scan_result">
+          <property name="visible">False</property>
         </object>
-    </child>
+      </child>
+    </object>
+  </child>
   </template>
 </interface>

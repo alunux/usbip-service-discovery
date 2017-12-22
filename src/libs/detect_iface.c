@@ -25,12 +25,9 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
 #include <unistd.h>
 
 #include "detect_iface.h"
-
-#define VM_TESTING 0
 
 static int
 check_wireless(const char* ifname)
@@ -91,25 +88,16 @@ get_iface_addr(void)
 {
     struct ifreq ifr;
     int fd;
-#if VM_TESTING == 0
     char* iface_name;
-#else
-    const char* iface_name = "virbr0";
-#endif
-
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;
     
-#if VM_TESTING == 0
     iface_name = find_wifi_interface();
     if (iface_name != NULL) {
         strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
         free(iface_name);
         iface_name = NULL;
     }
-#else
-    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
-#endif
 
     ifr.ifr_name[IFNAMSIZ - 1] = '\0';
     ioctl(fd, SIOCGIFADDR, &ifr);

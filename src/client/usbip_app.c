@@ -22,7 +22,7 @@
 #include "usbip_app.h"
 #include "usbip_app_win.h"
 
-#define USBIP_GROUP_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "239.255.0.1"
 #define LISTENPORT 10297
 
 struct _UsbipApp {

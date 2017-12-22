@@ -33,14 +33,14 @@
 
 #include "detect_iface.h"
 
-#define USBIP_GROUP_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "239.255.0.1"
 #define LISTENPORT 10297
 
 static void
 broadcast_event(void)
 {
     struct in_addr LocalIface;
-    struct sockaddr_in NekoFiGroupSock;
+    struct sockaddr_in UsbipGroupSock;
 
     struct timeval time_val;
     time_val.tv_sec = 1;
@@ -50,7 +50,7 @@ broadcast_event(void)
     char ack[] = "1";
     socklen_t socklen;
 
-    memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
+    memset(&UsbipGroupSock, 0, sizeof(UsbipGroupSock));
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
@@ -58,9 +58,9 @@ broadcast_event(void)
         exit(1);
     }
 
-    NekoFiGroupSock.sin_family = AF_INET;
-    NekoFiGroupSock.sin_port = htons(LISTENPORT);
-    NekoFiGroupSock.sin_addr.s_addr = inet_addr(USBIP_GROUP_ADDR);
+    UsbipGroupSock.sin_family = AF_INET;
+    UsbipGroupSock.sin_port = htons(LISTENPORT);
+    UsbipGroupSock.sin_addr.s_addr = inet_addr(USBIP_GROUP_ADDR);
 
     {
         char reuse = '0';
@@ -94,13 +94,9 @@ broadcast_event(void)
         exit(1);
     }
 
-    socklen = sizeof(NekoFiGroupSock);
-    sendto(sockfd,
-           &ack,
-           strlen(ack),
-           0,
-           (struct sockaddr*)&NekoFiGroupSock,
-           socklen);
+    socklen = sizeof(UsbipGroupSock);
+    sendto(
+      sockfd, &ack, strlen(ack), 0, (struct sockaddr*)&UsbipGroupSock, socklen);
 
     close(sockfd);
 }

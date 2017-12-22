@@ -26,7 +26,7 @@
 #include "detect_iface.h"
 #include "multicast_event.h"
 
-#define USBIP_GROUP_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "239.255.0.1"
 #define LISTENPORT 10297
 
 int
@@ -85,7 +85,7 @@ int
 announce_client_event(void)
 {
     struct in_addr LocalIface;
-    struct sockaddr_in NekoFiGroupSock;
+    struct sockaddr_in UsbipGroupSock;
 
     int sockfd;
     int ret = 0;
@@ -93,7 +93,7 @@ announce_client_event(void)
     const char* iface_name;
     socklen_t socklen;
 
-    memset(&NekoFiGroupSock, 0, sizeof(NekoFiGroupSock));
+    memset(&UsbipGroupSock, 0, sizeof(UsbipGroupSock));
 
     iface_name = get_iface_addr();
     if (iface_name == NULL) {
@@ -107,20 +107,20 @@ announce_client_event(void)
         return -1;
     }
 
-    NekoFiGroupSock.sin_family = AF_INET;
-    NekoFiGroupSock.sin_port = htons(LISTENPORT);
-    NekoFiGroupSock.sin_addr.s_addr = inet_addr(USBIP_GROUP_ADDR);
+    UsbipGroupSock.sin_family = AF_INET;
+    UsbipGroupSock.sin_port = htons(LISTENPORT);
+    UsbipGroupSock.sin_addr.s_addr = inet_addr(USBIP_GROUP_ADDR);
     LocalIface.s_addr = inet_addr(iface_name);
 
     multicast_set_ip_iface(sockfd, &LocalIface);
     multicast_set_socket_timeout(sockfd, 1, 0);
 
-    socklen = sizeof(NekoFiGroupSock);
+    socklen = sizeof(UsbipGroupSock);
     if ((ret = sendto(sockfd,
                       &ack,
                       strlen(ack),
                       0,
-                      (struct sockaddr*)&NekoFiGroupSock,
+                      (struct sockaddr*)&UsbipGroupSock,
                       socklen)) < 0) {
         printf("multicast_event: sendto error\n");
     }

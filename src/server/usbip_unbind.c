@@ -17,9 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libudev.h>
-
 #include <errno.h>
+#include <libudev.h>
 #include <stdio.h>
 #include <string.h>
 

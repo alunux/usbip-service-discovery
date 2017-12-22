@@ -33,7 +33,7 @@
 #include "discover.h"
 #include "multicast_event.h"
 
-#define USBIP_GROUP_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "239.255.0.1"
 #define JSON_PORT 10796
 #define LISTENPORT 10296
 

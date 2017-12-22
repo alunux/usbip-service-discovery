@@ -28,14 +28,14 @@
 
 #include "detect_iface.h"
 
-#define USBIP_GROUP_ADDR "225.10.10.1"
+#define USBIP_GROUP_ADDR "239.255.0.1"
 #define LISTENPORT 10296
 
 int
 main(void)
 {
     struct sockaddr_in LocalSock;
-    struct ip_mreq NekoFiGroup;
+    struct ip_mreq UsbipGroup;
 
     int status;
     int sockfd;
@@ -43,7 +43,7 @@ main(void)
     socklen_t socklen;
 
     memset(&LocalSock, 0, sizeof(LocalSock));
-    memset(&NekoFiGroup, 0, sizeof(NekoFiGroup));
+    memset(&UsbipGroup, 0, sizeof(UsbipGroup));
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
@@ -73,21 +73,21 @@ main(void)
         exit(1);
     }
 
-    NekoFiGroup.imr_multiaddr.s_addr = inet_addr(USBIP_GROUP_ADDR);
-    NekoFiGroup.imr_interface.s_addr = inet_addr(get_iface_addr());
+    UsbipGroup.imr_multiaddr.s_addr = inet_addr(USBIP_GROUP_ADDR);
+    UsbipGroup.imr_interface.s_addr = inet_addr(get_iface_addr());
 
     if (setsockopt(sockfd,
                    IPPROTO_IP,
                    IP_ADD_MEMBERSHIP,
-                   (char*)&NekoFiGroup,
-                   sizeof(NekoFiGroup)) < 0) {
+                   (char*)&UsbipGroup,
+                   sizeof(UsbipGroup)) < 0) {
         perror("setup multicast group");
         close(sockfd);
         exit(1);
     }
 
     while (1) {
-        printf("NekoFi server: listening on %s...\n", get_iface_addr());
+        printf("Discovery Listener: listening on %s...\n", get_iface_addr());
         socklen = sizeof(LocalSock);
         status = recvfrom(
           sockfd, &ack, sizeof(ack), 0, (struct sockaddr*)&LocalSock, &socklen);
@@ -98,8 +98,8 @@ main(void)
             printf("received %d bytes from %s\n",
                    status,
                    inet_ntoa(LocalSock.sin_addr));
-            printf("NekoFi server: packet is %d bytes\n", status);
-            printf("NekoFi server: packet contains \"%d\"\n", ack);
+            printf("Discovery Listener: packet is %d bytes\n", status);
+            printf("Discovery Listener: packet contains \"%d\"\n", ack);
             do {
                 status = sendto(
                   sockfd, NULL, 0, 0, (struct sockaddr*)&LocalSock, socklen);
