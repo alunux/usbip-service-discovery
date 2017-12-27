@@ -16,12 +16,15 @@
  */
 
 #include <gtk/gtk.h>
+#include <netdb.h>
 
 #include "discover.h"
 #include "multicast_event.h"
 #include "usbip.h"
 #include "usbip_app.h"
 #include "usbip_app_win.h"
+#include "usbip_common.h"
+#include "vhci_driver.h"
 
 struct _UsbipAppWin {
     GtkApplicationWindow parent;
@@ -35,9 +38,9 @@ struct _UsbipAppWinPrivate {
     GtkWidget* scan_result;
     GtkWidget* scan_button;
     GList* node_state;
+    GList* node_list;
     gboolean cleared;
     json_object* usb_json;
-    UsbipAppDevice* dev_tmp;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(UsbipAppWin,
@@ -107,50 +110,44 @@ usbip_app_win_new(UsbipApp* app)
 }
 
 static GtkWidget*
-usbip_app_win_control_usb_remote(GtkWidget* button, gpointer user_data)
+control_usb_remote(GtkWidget* button, gpointer user_data)
 {
-    UsbipAppWin* win = NULL;
-    UsbipAppWinPrivate* priv = NULL;
+    UsbipAppWin* win = USBIP_APP_WIN((g_list_first(user_data))->data);
+    UsbipAppWinPrivate* priv = usbip_app_win_get_instance_private(win);
 
-    win = USBIP_APP_WIN(user_data);
-    priv = usbip_app_win_get_instance_private(win);
+    UsbipAppDevice* usb = g_list_last(user_data)->data;
 
     int port, ret;
     char port_s[127];
     gchar* busid;
 
-    busid = g_strdup(priv->dev_tmp->busid);
-
+    busid = g_strdup(usb->busid);
     if (g_strcmp0(gtk_button_get_label(GTK_BUTTON(button)), "Attach") == 0) {
-        port = attach_device(priv->dev_tmp->node_addr, priv->dev_tmp->busid);
+        port = attach_device(usb->node_addr, usb->busid);
         if (port < 0) {
-            g_print("Can't attach %s at %s\n",
-                    priv->dev_tmp->busid,
-                    priv->dev_tmp->node_addr);
+            g_print("Can't attach %s at %s\n", usb->busid, usb->node_addr);
         } else {
-            g_print("Attach: %s at %s\n",
-                    priv->dev_tmp->busid,
-                    priv->dev_tmp->node_addr);
             gtk_button_set_label(GTK_BUTTON(button), "Detach");
-            priv->dev_tmp->port = port;
+            usb->port = port;
             priv->node_state = g_list_append(priv->node_state, busid);
+            g_print("Attach: %s at %s \n", usb->busid, usb->node_addr);
+            g_print("VHCI portnum: %d\n", usb->port);
             if (announce_client_event() >= 0)
                 g_print("Attach: Announcement success\n");
         }
     } else {
-        snprintf(port_s, sizeof(port_s), "%d", priv->dev_tmp->port);
+        snprintf(port_s, sizeof(port_s), "%d", usb->port);
         ret = detach_port(port_s);
         if (ret < 0) {
             g_print("Can't detach %s at %s from port %s\n",
-                    priv->dev_tmp->busid,
-                    priv->dev_tmp->node_addr,
+                    usb->busid,
+                    usb->node_addr,
                     port_s);
         } else {
-            g_print("Detach: %s at %s\n",
-                    priv->dev_tmp->busid,
-                    priv->dev_tmp->node_addr);
+            g_print("Detach: %s at %s\n", usb->busid, usb->node_addr);
+            g_print("VHCI portnum: %d\n", usb->port);
             gtk_button_set_label(GTK_BUTTON(button), "Attach");
-            priv->node_state = g_list_remove(priv->node_state, busid);
+            priv->node_state = g_list_remove(priv->node_state, usb->busid);
             if (announce_client_event() >= 0)
                 g_print("Detach: Announcement success\n");
         }
@@ -164,36 +161,33 @@ usbip_app_win_get_usb_info(const gchar* node_addr,
                            json_object* usb_info,
                            UsbipAppWin* _win)
 {
-    UsbipAppWin* win = NULL;
-    UsbipAppWinPrivate* priv = NULL;
-    GtkWidget* button_box = NULL;
-    GtkWidget* devs_info = NULL;
-    GtkWidget* button = NULL;
-    GtkWidget* label = NULL;
-    GList* iter_con = NULL;
-    gchar* devs_desc;
-    const gchar *product, *idProduct, *idVendor, *manufact, *busid;
+    UsbipAppWin* win = USBIP_APP_WIN(_win);
+    UsbipAppWinPrivate* priv = usbip_app_win_get_instance_private(win);
 
+    const gchar *product, *idProduct, *idVendor, *manufact, *busid;
     product = discover_query_usb_desc(usb_info, "product");
     idProduct = discover_query_usb_desc(usb_info, "idProduct");
     idVendor = discover_query_usb_desc(usb_info, "idVendor");
     manufact = discover_query_usb_desc(usb_info, "manufact");
     busid = discover_query_usb_desc(usb_info, "busid");
 
-    win = USBIP_APP_WIN(_win);
-    priv = usbip_app_win_get_instance_private(win);
+    UsbipAppDevice* node = g_new(UsbipAppDevice, 1);
+    node->node_addr = node_addr;
+    node->busid = busid;
 
-    priv->dev_tmp = g_new(UsbipAppDevice, 1);
-    priv->dev_tmp->node_addr = node_addr;
-    priv->dev_tmp->busid = busid;
+    GList* item = NULL;
+    item = g_list_append(item, win);
+    item = g_list_append(item, node);
 
-    devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    priv->node_list = g_list_append(priv->node_list, node);
+
+    GtkWidget* devs_info = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_show(devs_info);
 
-    button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    GtkWidget* button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_show(button_box);
 
-    devs_desc =
+    gchar* devs_desc =
       g_strdup_printf("<b>%s</b>\nidVendor: %s\nidProduct: %s\nManufacturer: "
                       "%s\nBUSID: %s\nNode: %s\n",
                       product,
@@ -203,31 +197,57 @@ usbip_app_win_get_usb_info(const gchar* node_addr,
                       busid,
                       node_addr);
 
-    label = gtk_label_new(discover_query_usb_desc(usb_info, "product"));
+    GtkWidget* label =
+      gtk_label_new(discover_query_usb_desc(usb_info, "product"));
     gtk_label_set_markup(GTK_LABEL(label), devs_desc);
     gtk_widget_show(label);
 
-    if (check_device_state(node_addr, busid) < 0) {
-        if (priv->node_state != NULL) {
-            for (iter_con = priv->node_state; iter_con != NULL;
-                 iter_con = iter_con->next) {
-                if (g_strcmp0(iter_con->data, busid) == 0) {
-                    button = gtk_button_new_with_label("Detach");
-                }
+    if (usbip_names_init(USBIDS_FILE)) {
+        err("failed to open %s", USBIDS_FILE);
+    }
+
+    if (usbip_vhci_driver_open() < 0) {
+        err("open vhci_driver");
+        usbip_names_free();
+        g_free(devs_desc);
+        return NULL;
+    }
+
+    GtkWidget* button = NULL;
+    struct usbip_imported_device* idev;
+    char host[NI_MAXHOST] = "unknown host";
+    char serv[NI_MAXSERV] = "unknown port";
+    char remote_busid[SYSFS_BUS_ID_SIZE];
+    int count_dev = 0;
+
+    for (int i = 0; i < vhci_driver->nports; i++) {
+        idev = &vhci_driver->idev[i];
+        if (idev->status == VDEV_ST_NULL ||
+            idev->status == VDEV_ST_NOTASSIGNED) {
+            continue;
+        }
+        read_record(
+          idev->port, host, sizeof(host), serv, sizeof(serv), remote_busid);
+        g_print("addr: %s, busid: %s\n", host, remote_busid);
+        if (check_device_state(node_addr, busid) < 0) {
+            if (g_strcmp0(host, node_addr) == 0 &&
+                g_strcmp0(remote_busid, busid) == 0) {
+                button = gtk_button_new_with_label("Detach");
             }
         } else {
             button = gtk_button_new_with_label("In Used");
             gtk_widget_set_sensitive(button, FALSE);
         }
-    } else {
+        count_dev++;
+    }
+    if (count_dev == 0) {
         button = gtk_button_new_with_label("Attach");
     }
 
     gtk_widget_show(button);
     gtk_box_set_center_widget(GTK_BOX(button_box), button);
 
-    g_signal_connect(
-      button, "clicked", G_CALLBACK(usbip_app_win_control_usb_remote), win);
+    g_signal_connect(button, "clicked", G_CALLBACK(control_usb_remote), item);
 
     gtk_box_pack_start(GTK_BOX(devs_info), label, FALSE, FALSE, 0);
     gtk_box_pack_end(GTK_BOX(devs_info), button_box, FALSE, FALSE, 0);
@@ -239,24 +259,19 @@ usbip_app_win_get_usb_info(const gchar* node_addr,
 static void
 usbip_app_win_clear(UsbipAppWin* win)
 {
-    UsbipAppWinPrivate* priv = NULL;
-    GList* con_child = NULL;
-    GList* iter_con = NULL;
-    gchar* no_mess = NULL;
+    UsbipAppWinPrivate* priv = usbip_app_win_get_instance_private(win);
 
-    priv = usbip_app_win_get_instance_private(win);
-    con_child = gtk_container_get_children(GTK_CONTAINER(priv->scrolled));
-
-    for (iter_con = con_child; iter_con != NULL;
+    GList* con_child =
+      gtk_container_get_children(GTK_CONTAINER(priv->scrolled));
+    for (GList* iter_con = con_child; iter_con != NULL;
          iter_con = g_list_next(iter_con)) {
         gtk_container_remove(GTK_CONTAINER(priv->scrolled),
                              GTK_WIDGET(iter_con->data));
     }
-
     g_list_free(con_child);
 
-    no_mess = g_strdup("<span size=\"x-large\">There are no USB devices "
-                       "found\nin your area . . .</span>");
+    gchar* no_mess = g_strdup("<span size=\"x-large\">There are no USB devices "
+                              "found\nin your area . . .</span>");
 
     priv->nf_mess = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(priv->nf_mess), no_mess);

@@ -64,5 +64,6 @@ int usbip_vhci_attach_device(uint8_t port, int sockfd, uint8_t busnum,
 int usbip_vhci_detach_device(uint8_t port);
 
 int usbip_vhci_imported_device_dump(struct usbip_imported_device *idev);
+int read_record(int rhport, char *host, unsigned long host_len, char *port, unsigned long port_len, char *busid);
 
 #endif /* __VHCI_DRIVER_H */
