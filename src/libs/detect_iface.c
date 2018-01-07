@@ -94,7 +94,7 @@ get_iface_addr(void)
     
     iface_name = find_wifi_interface();
     if (iface_name != NULL) {
-        strncpy(ifr.ifr_name, iface_name, IFNAMSIZ - 1);
+        strncpy(ifr.ifr_name, "virbr0", IFNAMSIZ - 1);
         free(iface_name);
         iface_name = NULL;
     }

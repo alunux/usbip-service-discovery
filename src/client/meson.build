@@ -8,6 +8,7 @@ frontend_src = [
     'main.c',
     'multicast_event.c',
     'discover.c',
+    'usb_desc.c',
     'usbip_app.c',
     'usbip_app_win.c',
     'usbip_attach.c',

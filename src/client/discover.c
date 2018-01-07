@@ -116,11 +116,8 @@ discover_query_usb_desc(json_object* root, const char* key)
     return NULL;
 }
 
-void
-discover_get_json(GTask* task,
-                  __attribute__((unused)) gpointer source_obj,
-                  __attribute__((unused)) gpointer task_data,
-                  __attribute__((unused)) GCancellable* cancellable)
+json_object*
+discover_get_json(void)
 {
     struct timespec start, stop;
 
@@ -175,7 +172,7 @@ discover_get_json(GTask* task,
         goto complete;
     }
 
-    printf("Uji kinerja pengenalan perangkat USB\n");
+    // printf("Uji kinerja pencarian perangkat penyedia\n");
     while (1) {
         clock_gettime(CLOCK_REALTIME, &start);
         status = recvfrom(
@@ -189,8 +186,8 @@ discover_get_json(GTask* task,
 
         double result = (stop.tv_sec - start.tv_sec) * 1e3 +
                         (stop.tv_nsec - start.tv_nsec) / 1e6; // in milidetik
-        printf(
-          "%s: %f milidetik\n", inet_ntoa(NekoFiGroupSock.sin_addr), result);
+        // printf(
+        //   "%s: %f milidetik\n", inet_ntoa(NekoFiGroupSock.sin_addr), result);
 
         if (pipe(fd[n_node]) != 0) {
             printf("Could not create new pipe %d", n_node);
@@ -229,6 +226,7 @@ discover_get_json(GTask* task,
         n_node++;
     }
 
+    clock_gettime(CLOCK_REALTIME, &start);
     json_object* add_usb_tolist;
     if (n_node > 0) {
         for (int i = 0; i < n_node; i++) {
@@ -239,12 +237,15 @@ discover_get_json(GTask* task,
             json_object_object_add(usb_json, node_addr[i], add_usb_tolist);
         }
 
-        // printf("%s\n",
-        //        json_object_to_json_string_ext(
-        //          usb_json, JSON_C_TO_STRING_SPACED |
-        //          JSON_C_TO_STRING_PRETTY));
+        printf("%s\n",
+               json_object_to_json_string_ext(
+                 usb_json, JSON_C_TO_STRING_SPACED |
+                 JSON_C_TO_STRING_PRETTY));
     }
+    clock_gettime(CLOCK_REALTIME, &stop);
+    double result = (stop.tv_sec - start.tv_sec) * 1e3 + (stop.tv_nsec - start.tv_nsec) / 1e6; // in milidetik
+    g_print("%f milidetik\n", result);
 
 complete:
-    g_task_return_pointer(task, usb_json, NULL);
+    return usb_json;
 }

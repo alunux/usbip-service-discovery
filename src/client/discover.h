@@ -25,10 +25,7 @@
 
 const char*
 discover_query_usb_desc(json_object* root, const char* key);
-void
-discover_get_json(GTask* task,
-                  gpointer source_obj,
-                  gpointer task_data,
-                  GCancellable* cancellable);
+json_object*
+discover_get_json(void);
 
 #endif /* DISCOVER_H */

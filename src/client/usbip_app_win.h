@@ -18,9 +18,8 @@
 #ifndef _USBIP_APP_WIN_H
 #define _USBIP_APP_WIN_H
 
-#include "discover.h"
-#include "usbip_app.h"
 #include <gtk/gtk.h>
+#include "usbip_app.h"
 
 #define USBIP_APP_WIN_TYPE (usbip_app_win_get_type())
 
@@ -33,6 +32,6 @@ G_DECLARE_FINAL_TYPE(UsbipAppWin,
 UsbipAppWin*
 usbip_app_win_new(UsbipApp* app);
 void
-usbip_app_win_update_list(UsbipAppWin* _win);
+usbip_app_win_refresh_list(UsbipAppWin *app);
 
 #endif /* _USBIP_APP_WIN_H */

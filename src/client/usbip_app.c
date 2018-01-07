@@ -17,6 +17,7 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
+#include <stdlib.h>
 
 #include "detect_iface.h"
 #include "usbip_app.h"
@@ -54,7 +55,7 @@ gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
     g_print("Ada perubahan device\n");
 
     win = USBIP_APP_WIN(data);
-    usbip_app_win_update_list(win);
+    usbip_app_win_refresh_list(win);
 
     return TRUE;
 }
@@ -93,7 +94,7 @@ usbip_app_activate(GApplication* app)
 
     wifi_iface = find_wifi_interface();
     ret = g_socket_join_multicast_group(
-      sock_event, groupaddr, FALSE, wifi_iface, NULL);
+      sock_event, groupaddr, FALSE, "virbr0", NULL);
 
     if (!ret) {
         g_print("g_socket_join_multicast_group: error\n");
@@ -104,7 +105,7 @@ usbip_app_activate(GApplication* app)
     int fd = g_socket_get_fd(sock_event);
 
     win = usbip_app_win_new(USBIP_APP(app));
-    usbip_app_win_update_list(win);
+    usbip_app_win_refresh_list(win);
     gtk_window_present(GTK_WINDOW(win));
 
     GIOChannel* channel = g_io_channel_unix_new(fd);

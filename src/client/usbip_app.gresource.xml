@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/org/alunux/usbipapp">
-    <file preprocess="xml-stripblanks">window.ui</file>
+    <file alias="window.ui" compressed="true" preprocess="xml-stripblanks">window.ui</file>
+    <file alias="usbip-entry.ui" compressed="true" preprocess="xml-stripblanks">usbip_entry.ui</file>
   </gresource>
 </gresources>
