@@ -26,6 +26,7 @@ struct _UsbDesc {
     gchar* manufacturer;
     gchar* busid;
     gchar* node_addr;
+    gchar* port;
     gboolean state;
 };
 
@@ -40,6 +41,7 @@ enum {
     PROP_BUSID,
     PROP_NODE,
     PROP_STATE,
+    PROP_PORT,
     LAST_PROP
 };
 
@@ -67,6 +69,7 @@ usb_desc_finalize(GObject* obj)
     g_free(self->manufacturer);
     g_free(self->busid);
     g_free(self->node_addr);
+    g_free(self->port);
 
     G_OBJECT_CLASS(usb_desc_parent_class)->finalize(obj);
 }
@@ -96,6 +99,9 @@ usb_desc_get_property(GObject* obj,
             g_value_set_string(value, usb_desc_get_busid(self));
             break;
         case PROP_NODE:
+            g_value_set_string(value, usb_desc_get_node_addr(self));
+            break;
+        case PROP_PORT:
             g_value_set_string(value, usb_desc_get_node_addr(self));
             break;
         case PROP_STATE:
@@ -131,6 +137,9 @@ usb_desc_set_property(GObject* obj,
             usb_desc_set_busid(self, g_value_get_string(value));
             break;
         case PROP_NODE:
+            usb_desc_set_node_addr(self, g_value_get_string(value));
+            break;
+        case PROP_PORT:
             usb_desc_set_node_addr(self, g_value_get_string(value));
             break;
         case PROP_STATE:
@@ -192,6 +201,13 @@ usb_desc_class_init(UsbDescClass* klass)
                           NULL,
                           (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+    properties[PROP_PORT] =
+      g_param_spec_string("port",
+                          "Port",
+                          "The port of the USB device",
+                          NULL,
+                          (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
     properties[PROP_STATE] =
       g_param_spec_boolean("state",
                            "State",
@@ -212,6 +228,7 @@ usb_desc_print(UsbDesc *self)
             "Manufacturer: %s\n"
             "BUSID: %s\n"
             "Node: %s\n"
+            "Port: %s\n"
             "State: %s\n\n",
             self->name,
             self->idvendor,
@@ -219,6 +236,7 @@ usb_desc_print(UsbDesc *self)
             self->manufacturer,
             self->busid,
             self->node_addr,
+            self->port,
             (self->state == TRUE) ? "Attachable" : "Detachable");
 }
 
@@ -262,6 +280,13 @@ usb_desc_get_node_addr(UsbDesc* self)
 {
     g_return_val_if_fail(USB_IS_DESC(self), NULL);
     return self->node_addr;
+}
+
+const gchar*
+usb_desc_get_port(UsbDesc* self)
+{
+    g_return_val_if_fail(USB_IS_DESC(self), NULL);
+    return self->port;
 }
 
 gboolean
@@ -322,6 +347,15 @@ usb_desc_set_node_addr(UsbDesc* self, const gchar* node_addr)
     g_return_if_fail(USB_IS_DESC(self));
     g_free(self->node_addr);
     self->node_addr = g_strdup(node_addr);
+    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_NODE]);
+}
+
+void
+usb_desc_set_node_addr(UsbDesc* self, const gchar* port)
+{
+    g_return_if_fail(USB_IS_DESC(self));
+    g_free(self->port);
+    self->port = g_strdup(port);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_NODE]);
 }
 

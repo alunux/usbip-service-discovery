@@ -65,17 +65,60 @@ usbip_app_win_init(UsbipAppWin *app)
 }
 
 static void
-usbip_state_changed(GtkWidget *usb_state, UsbDesc *dev)
+usbip_attach_async_done(GObject *app,
+                   GAsyncResult *res,
+                   gpointer data)
 {
+
+}
+
+static void
+usbip_attach_async(GTask *task,
+                   gpointer obj,
+                   gpointer data,
+                   GCancellable *cancel)
+{
+    GtkWidget *usb_state = obj;
+    UsbDesc *dev = data;
+    const gchar *host = usb_desc_get_node_addr(dev);
+    const gchar *busid = usb_desc_get_busid(dev);
+    const gchar *port = usb_desc_get_port(dev);
+
     if (!g_strcmp0(gtk_button_get_label(GTK_BUTTON(usb_state)), "Attach")) {
+        if (attach_device(host, busid) < 0) {
+            gtk_button_set_label(GTK_BUTTON(usb_state), "Failed");
+            g_usleep(3 * G_USEC_PER_SEC);
+            gtk_button_set_label(GTK_BUTTON(usb_state), "Attach");
+            g_task_return_boolean(task, FALSE);
+        }
+
         gtk_button_set_label(GTK_BUTTON(usb_state), "Detach");
         usb_desc_set_state(dev, FALSE);
         usb_desc_print(dev);
+        g_task_return_boolean(task, TRUE);
     } else {
+        if (detach_port(port) < 0) {
+            gtk_button_set_label(GTK_BUTTON(usb_state), "Failed");
+            g_usleep(3 * G_USEC_PER_SEC);
+            gtk_button_set_label(GTK_BUTTON(usb_state), "Detach");
+            g_task_return_boolean(task, FALSE);
+        }
+
         gtk_button_set_label(GTK_BUTTON(usb_state), "Attach");
         usb_desc_set_state(dev, TRUE);
         usb_desc_print(dev);
+        g_task_return_boolean(task, TRUE);
     }
+}
+
+static void
+usbip_state_changed(GtkWidget *usb_state, UsbDesc *dev)
+{
+    GCancellable *cancel = NULL;
+    GTask *task = g_task_new(usb_state, cancel, usbip_attach_async, dev);
+
+    g_task_run_in_thread(task, usbip_attach_async_done);
+    g_object_unref(task);
 }
 
 static GtkWidget*

@@ -24,13 +24,6 @@
 #include "config.h"
 #endif
 
-typedef struct _UsbipAppDevice {
-    int state;
-    const char* node_addr;
-    const char* busid;
-    int port;
-} UsbipAppDevice;
-
 /* usbip commands */
 int
 attach_device(const char* host, const char* busid);

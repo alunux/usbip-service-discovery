@@ -40,6 +40,8 @@ const gchar*
 usb_desc_get_busid(UsbDesc* self);
 const gchar*
 usb_desc_get_node_addr(UsbDesc* self);
+const gchar*
+usb_desc_get_port(UsbDesc* self);
 gboolean
 usb_desc_get_state(UsbDesc* self);
 
@@ -55,6 +57,8 @@ void
 usb_desc_set_busid(UsbDesc* self, const gchar* busid);
 void
 usb_desc_set_node_addr(UsbDesc* self, const gchar* node_addr);
+void
+usb_desc_set_port(UsbDesc* self, const gchar* port);
 void
 usb_desc_set_state(UsbDesc* self, gboolean attachable);
 

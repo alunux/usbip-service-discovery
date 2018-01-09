@@ -237,7 +237,7 @@ discover_get_json(void)
             json_object_object_add(usb_json, node_addr[i], add_usb_tolist);
         }
 
-        printf("%s\n",
+        g_print("%s\n",
                json_object_to_json_string_ext(
                  usb_json, JSON_C_TO_STRING_SPACED |
                  JSON_C_TO_STRING_PRETTY));
