@@ -36,6 +36,9 @@ detach_port(const char* port)
     uint8_t portnum;
     char path[PATH_MAX + 1];
 
+    if (port == NULL)
+        return -1;
+
     unsigned int port_len = strlen(port);
 
     for (unsigned int i = 0; i < port_len; i++)

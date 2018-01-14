@@ -237,10 +237,10 @@ discover_get_json(void)
             json_object_object_add(usb_json, node_addr[i], add_usb_tolist);
         }
 
-        g_print("%s\n",
-               json_object_to_json_string_ext(
-                 usb_json, JSON_C_TO_STRING_SPACED |
-                 JSON_C_TO_STRING_PRETTY));
+        // g_print("%s\n",
+        //        json_object_to_json_string_ext(
+        //          usb_json, JSON_C_TO_STRING_SPACED |
+        //          JSON_C_TO_STRING_PRETTY));
     }
     clock_gettime(CLOCK_REALTIME, &stop);
     double result = (stop.tv_sec - start.tv_sec) * 1e3 + (stop.tv_nsec - start.tv_nsec) / 1e6; // in milidetik

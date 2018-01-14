@@ -16,11 +16,13 @@
  */
 
 #include <json-c/json.h>
+#include <netdb.h>
 #include <gtk/gtk.h>
 
 #include "usbip_app.h"
 #include "usbip_app_win.h"
 #include "usb_desc.h"
+#include "usbip.h"
 #include "discover.h"
 
 struct _UsbipAppWin {
@@ -34,6 +36,7 @@ struct _UsbipAppWinPrivate {
     GtkWidget *list_dev;
     GtkWidget *button_add_dev;
     GList     *devs;
+    GList     *devs_attached;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(UsbipAppWin, usbip_app_win, GTK_TYPE_APPLICATION_WINDOW)
@@ -65,59 +68,71 @@ usbip_app_win_init(UsbipAppWin *app)
 }
 
 static void
-usbip_attach_async_done(GObject *app,
-                   GAsyncResult *res,
-                   gpointer data)
+usbip_device_control_done(GObject *button,
+                        GAsyncResult *state,
+                        gpointer data)
 {
+    g_return_if_fail (g_task_is_valid(state, button));
 
+    UsbDesc *dev = data;
+
+    if (g_task_propagate_boolean(G_TASK(state), NULL)) {
+        usb_desc_print(dev);
+    } else {
+        g_print("Failed to %s\n"
+                "\t-> %s\n"
+                "\t-> %s\n"
+                "\t-> %s\n",
+                (usb_desc_get_state(dev) == TRUE) ? "Attach" : "Detach",
+                usb_desc_get_name(dev),
+                usb_desc_get_node_addr(dev),
+                usb_desc_get_busid(dev));
+    }
 }
 
 static void
-usbip_attach_async(GTask *task,
+usbip_device_control(GTask *task,
                    gpointer obj,
                    gpointer data,
-                   GCancellable *cancel)
+                   __attribute__((unused)) GCancellable *cancel)
 {
     GtkWidget *usb_state = obj;
     UsbDesc *dev = data;
     const gchar *host = usb_desc_get_node_addr(dev);
     const gchar *busid = usb_desc_get_busid(dev);
-    const gchar *port = usb_desc_get_port(dev);
+    gboolean ret = TRUE;
 
     if (!g_strcmp0(gtk_button_get_label(GTK_BUTTON(usb_state)), "Attach")) {
-        if (attach_device(host, busid) < 0) {
-            gtk_button_set_label(GTK_BUTTON(usb_state), "Failed");
-            g_usleep(3 * G_USEC_PER_SEC);
-            gtk_button_set_label(GTK_BUTTON(usb_state), "Attach");
-            g_task_return_boolean(task, FALSE);
-        }
-
-        gtk_button_set_label(GTK_BUTTON(usb_state), "Detach");
-        usb_desc_set_state(dev, FALSE);
-        usb_desc_print(dev);
-        g_task_return_boolean(task, TRUE);
-    } else {
-        if (detach_port(port) < 0) {
-            gtk_button_set_label(GTK_BUTTON(usb_state), "Failed");
-            g_usleep(3 * G_USEC_PER_SEC);
+        int port_n = attach_device(host, busid);
+        gchar *port_s = g_strdup_printf("%d", port_n);
+        if (port_n < 0) {
+            ret = FALSE;
+        } else {
             gtk_button_set_label(GTK_BUTTON(usb_state), "Detach");
-            g_task_return_boolean(task, FALSE);
+            usb_desc_set_state(dev, FALSE);
+            usb_desc_set_port(dev, port_s);
         }
-
-        gtk_button_set_label(GTK_BUTTON(usb_state), "Attach");
-        usb_desc_set_state(dev, TRUE);
-        usb_desc_print(dev);
-        g_task_return_boolean(task, TRUE);
+        g_free(port_s);
+    } else {
+        if (detach_port(usb_desc_get_port(dev)) < 0) {
+            ret = FALSE;
+        } else {
+            gtk_button_set_label(GTK_BUTTON(usb_state), "Attach");
+            usb_desc_set_state(dev, TRUE);
+            usb_desc_set_port(dev, NULL);
+        }
     }
+
+    g_task_return_boolean(task, ret);
 }
 
 static void
 usbip_state_changed(GtkWidget *usb_state, UsbDesc *dev)
 {
-    GCancellable *cancel = NULL;
-    GTask *task = g_task_new(usb_state, cancel, usbip_attach_async, dev);
+    GTask *task = g_task_new(usb_state, NULL, usbip_device_control_done, dev);
 
-    g_task_run_in_thread(task, usbip_attach_async_done);
+    g_task_set_task_data(task, g_object_ref(dev), g_object_unref);
+    g_task_run_in_thread(task, usbip_device_control);
     g_object_unref(task);
 }
 
@@ -170,7 +185,7 @@ query_usb_id(json_object *root, const gchar *key)
 }
 
 static void
-clear_list_dev(GtkWidget *row, __attribute__((unused)) gpointer data)
+clear_list_dev(GtkWidget *row, gpointer data)
 {
     gtk_widget_destroy(row);
 }
@@ -183,6 +198,28 @@ refresh_list_thread(GTask *task,
 {
     json_object *usb_list = discover_get_json();
     g_task_return_pointer(task, usb_list, (GDestroyNotify) json_object_put);
+}
+
+static void
+set_dev_state(gpointer old, gpointer new)
+{
+    UsbDesc *devold = old;
+    UsbDesc *devnew = new;
+    gboolean same_addr = FALSE;
+    gboolean same_busid = FALSE;
+
+    if (!g_strcmp0(usb_desc_get_node_addr(devold), usb_desc_get_node_addr(devnew))) {
+        same_addr = TRUE;
+    }
+
+    if (!g_strcmp0(usb_desc_get_busid(devold), usb_desc_get_busid(devnew))) {
+        same_busid = TRUE;
+    }
+
+    if ((same_addr & same_busid) == TRUE && usb_desc_get_state(devold) == FALSE) {
+        usb_desc_set_state(devnew, FALSE);
+        usb_desc_set_port(devnew, usb_desc_get_port(devold));
+    }
 }
 
 static void
@@ -202,6 +239,7 @@ usbip_app_win_refresh_list_done(GObject *app,
 
     gtk_container_foreach(GTK_CONTAINER(self->list_dev), (GtkCallback) clear_list_dev, NULL);
 
+    GList *list = NULL;
     json_object *iter;
     json_object_object_foreach(usb_list, nodes, devices)
     {
@@ -216,15 +254,22 @@ usbip_app_win_refresh_list_done(GObject *app,
                                             "manufacturer", query_usb_id(iter, "manufact"),
                                             "busid", query_usb_id(iter, "busid"),
                                             "node-addr", nodes,
+                                            "port", NULL,
                                             "state", TRUE,
                                             NULL);
-                
-                self->devs = g_list_append(self->devs, dev);
+
+                g_list_foreach(self->devs, set_dev_state, dev);
+
+                list = g_list_append(list, dev);
                 GtkWidget *usb_entry_row =  create_usbip_entry(dev);
                 gtk_container_add (GTK_CONTAINER(self->list_dev), usb_entry_row);
             }
         }
     }
+
+    g_list_free_full(self->devs, g_object_unref);
+    self->devs = g_list_copy(list);
+    g_list_free(list);
 done:
     json_object_put(usb_list);
     gtk_widget_set_sensitive(self->button_add_dev, TRUE);

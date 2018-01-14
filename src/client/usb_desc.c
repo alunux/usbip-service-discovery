@@ -102,7 +102,7 @@ usb_desc_get_property(GObject* obj,
             g_value_set_string(value, usb_desc_get_node_addr(self));
             break;
         case PROP_PORT:
-            g_value_set_string(value, usb_desc_get_node_addr(self));
+            g_value_set_string(value, usb_desc_get_port(self));
             break;
         case PROP_STATE:
             g_value_set_boolean(value, usb_desc_get_state(self));
@@ -140,7 +140,7 @@ usb_desc_set_property(GObject* obj,
             usb_desc_set_node_addr(self, g_value_get_string(value));
             break;
         case PROP_PORT:
-            usb_desc_set_node_addr(self, g_value_get_string(value));
+            usb_desc_set_port(self, g_value_get_string(value));
             break;
         case PROP_STATE:
             usb_desc_set_state(self, g_value_get_boolean(value));
@@ -351,7 +351,7 @@ usb_desc_set_node_addr(UsbDesc* self, const gchar* node_addr)
 }
 
 void
-usb_desc_set_node_addr(UsbDesc* self, const gchar* port)
+usb_desc_set_port(UsbDesc* self, const gchar* port)
 {
     g_return_if_fail(USB_IS_DESC(self));
     g_free(self->port);
