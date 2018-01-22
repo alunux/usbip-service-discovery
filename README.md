@@ -1,7 +1,7 @@
-# NekoFi
+# USB/IP Discovery Apps
 Provide GUI and some enhancement for USB/IP userspace. It includes a mechanism
 which utilizes existing approaches to the pervasive computing and IoT. UDP Multicast
-is one of the methods used in NekoFi to find USB/IP service in your local area.
+is one of the methods used in USB/IP Discovery Apps to find USB/IP service in your local area.
 
 It's still under development, nothing is useful here.
 
