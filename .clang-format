@@ -1,9 +1,9 @@
 ---
 BreakBeforeBraces: Linux
-ColumnLimit: 80
+ColumnLimit: 100
 IndentWidth: 4
 Language: Cpp
-Standard:        Cpp11
-TabWidth:        4
-UseTab:          Never
+Standard: Cpp11
+TabWidth: 4
+UseTab: Never
 ...
