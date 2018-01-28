@@ -1,7 +1,7 @@
-# USB/IP Discovery Apps
+# USB/IP Service Discovery
 Provide GUI and some enhancement for USB/IP userspace. It includes a mechanism
-which utilizes existing approaches to the pervasive computing and IoT. UDP Multicast
-is one of the methods used in USB/IP Discovery Apps to find USB/IP service in your local area.
+which utilizes existing approaches to the pervasive computing and IoT. IP Multicast
+is one of the methods used in USB/IP Service Discovery to find USB/IP service in your local area.
 
 It's still under development, nothing is useful here.
 
@@ -19,3 +19,13 @@ It's still under development, nothing is useful here.
 <p align=center>
     <img src="https://github.com/alunux/usbip-gui-utils/raw/master/.github/screenshots/main.png">
 </p>
+
+### Thanks To
+Thanks to The USB/IP Project (Takahiro Hirofuchi, et al.) and the Linux kernel developers.
+
+### LICENSE
+Copyright © 2017-2018 La Ode Muh. Fadlun Akbar
+
+usbip-service-discovery is available under the terms of the GPL-2.0-or-later license.
+
+See the accompanying LICENSE file for more details
