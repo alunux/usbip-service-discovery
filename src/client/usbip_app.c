@@ -28,6 +28,13 @@
 
 struct _UsbipApp {
     GtkApplication parent;
+
+    GInetAddress* inetaddr;
+    GInetAddress* groupaddr;
+    GSocket* sock_event;
+    GSocketAddress* sockaddr;
+
+    char* wifi_iface;
 };
 
 G_DEFINE_TYPE(UsbipApp, usbip_app, GTK_TYPE_APPLICATION)
@@ -37,10 +44,32 @@ usbip_app_init(__attribute__((unused)) UsbipApp* app)
 {
 }
 
+static void
+usbip_app_dispose(GObject *obj)
+{
+    UsbipApp *self = USBIP_APP(obj);
+
+    g_clear_object(&self->inetaddr);
+    g_clear_object(&self->groupaddr);
+    g_clear_object(&self->sock_event);
+    g_clear_object(&self->sockaddr);
+
+    G_OBJECT_CLASS(usbip_app_parent_class)->dispose(obj);
+}
+
+static void
+usbip_app_finalize(GObject *obj)
+{
+    UsbipApp *self = USBIP_APP(obj);
+
+    free(self->wifi_iface);
+
+    G_OBJECT_CLASS(usbip_app_parent_class)->finalize(obj);
+}
+
 static gboolean
 gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
 {
-    UsbipAppWin* win = NULL;
     GError* error = NULL;
     char buf[1024];
     gsize bytes_read;
@@ -54,7 +83,7 @@ gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
 
     g_print("Ada perubahan device\n");
 
-    win = USBIP_APP_WIN(data);
+    UsbipAppWin* win = USBIP_APP_WIN(data);
     usbip_app_win_refresh_list(win);
 
     return TRUE;
@@ -63,48 +92,37 @@ gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
 static void
 usbip_app_activate(GApplication* app)
 {
-    UsbipAppWin* win = NULL;
-    GSocket* sock_event = NULL;
-    GInetAddress* inetaddr = NULL;
-    GInetAddress* groupaddr = NULL;
-    GSocketAddress* sockaddr = NULL;
-    GError* err = NULL;
+    UsbipApp *self = USBIP_APP(app);
+
     gboolean ret;
-    char* wifi_iface;
+    GError* err = NULL;
 
-    inetaddr = g_inet_address_new_any(G_SOCKET_FAMILY_IPV4);
-    groupaddr = g_inet_address_new_from_string(USBIP_GROUP_ADDR);
-    sockaddr =
-      G_SOCKET_ADDRESS(g_inet_socket_address_new(inetaddr, LISTENPORT));
-    sock_event = g_socket_new(G_SOCKET_FAMILY_IPV4,
-                              G_SOCKET_TYPE_DATAGRAM,
-                              G_SOCKET_PROTOCOL_UDP,
-                              &err);
+    self->inetaddr = g_inet_address_new_any(G_SOCKET_FAMILY_IPV4);
+    self->groupaddr = g_inet_address_new_from_string(USBIP_GROUP_ADDR);
+    self->sockaddr = G_SOCKET_ADDRESS(g_inet_socket_address_new(self->inetaddr, LISTENPORT));
+    self->sock_event = g_socket_new(G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM, G_SOCKET_PROTOCOL_UDP, &err);
 
-    if (sock_event == NULL) {
+    if (self->sock_event == NULL) {
         g_print("g_socket_new: %s\n", err->message);
-        exit(1);
+        return;
     }
 
-    ret = g_socket_bind(sock_event, sockaddr, TRUE, &err);
+    ret = g_socket_bind(self->sock_event, self->sockaddr, TRUE, &err);
     if (!ret) {
         g_print("g_socket_bind: error\n");
-        exit(1);
+        return;
     }
 
-    wifi_iface = find_wifi_interface();
-    ret = g_socket_join_multicast_group(
-      sock_event, groupaddr, FALSE, "virbr0", NULL);
-
+    self->wifi_iface = find_wifi_interface();
+    ret = g_socket_join_multicast_group(self->sock_event, self->groupaddr, FALSE, "virbr0", NULL);
     if (!ret) {
         g_print("g_socket_join_multicast_group: error\n");
+        return;
     }
 
-    free(wifi_iface);
+    int fd = g_socket_get_fd(self->sock_event);
 
-    int fd = g_socket_get_fd(sock_event);
-
-    win = usbip_app_win_new(USBIP_APP(app));
+    UsbipAppWin* win = usbip_app_win_new(USBIP_APP(app));
     usbip_app_win_refresh_list(win);
     gtk_window_present(GTK_WINDOW(win));
 
@@ -116,6 +134,9 @@ usbip_app_activate(GApplication* app)
 static void
 usbip_app_class_init(UsbipAppClass* class)
 {
+    G_OBJECT_CLASS(class)->dispose = usbip_app_dispose;
+    G_OBJECT_CLASS(class)->finalize = usbip_app_finalize;
+
     G_APPLICATION_CLASS(class)->activate = usbip_app_activate;
 }
 
