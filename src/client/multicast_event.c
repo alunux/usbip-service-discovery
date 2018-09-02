@@ -29,14 +29,12 @@
 #define USBIP_GROUP_ADDR "239.255.0.1"
 #define LISTENPORT 10297
 
-int
-multicast_set_ip_reuse(int sockfd)
+int multicast_set_ip_reuse(int sockfd)
 {
     char reuse = '0';
     int ret = 0;
 
-    ret = setsockopt(
-      sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&reuse, sizeof(reuse));
+    ret = setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&reuse, sizeof(reuse));
     if (ret < 0) {
         perror("setting IP_MULTICAST_LOOP");
         close(sockfd);
@@ -45,24 +43,19 @@ multicast_set_ip_reuse(int sockfd)
     return ret;
 }
 
-int
-multicast_set_ip_iface(int sockfd, struct in_addr* LocalIface)
+int multicast_set_ip_iface(int sockfd, struct in_addr *LocalIface)
 {
     int ret = 0;
 
-    ret = setsockopt(sockfd,
-                     IPPROTO_IP,
-                     IP_MULTICAST_IF,
-                     (char*)LocalIface,
-                     sizeof(struct in_addr));
+    ret =
+        setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char *)LocalIface, sizeof(struct in_addr));
     if (ret < 0)
         perror("setting local interface");
 
     return ret;
 }
 
-int
-multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec)
+int multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec)
 {
     struct timeval sock_timeout;
     sock_timeout.tv_sec = sec;
@@ -70,10 +63,7 @@ multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec)
 
     int ret = 0;
 
-    ret = setsockopt(sockfd,
-                     SOL_SOCKET,
-                     SO_RCVTIMEO,
-                     (const char*)&sock_timeout,
+    ret = setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&sock_timeout,
                      sizeof(struct timeval));
     if (ret < 0)
         perror("setting socket timeout");
@@ -81,8 +71,7 @@ multicast_set_socket_timeout(int sockfd, time_t sec, suseconds_t usec)
     return ret;
 }
 
-int
-announce_client_event(void)
+int announce_client_event(void)
 {
     struct in_addr LocalIface;
     struct sockaddr_in UsbipGroupSock;
@@ -90,7 +79,7 @@ announce_client_event(void)
     int sockfd;
     int ret = 0;
     char ack[] = "1";
-    const char* iface_name;
+    const char *iface_name;
     socklen_t socklen;
 
     memset(&UsbipGroupSock, 0, sizeof(UsbipGroupSock));
@@ -116,12 +105,8 @@ announce_client_event(void)
     multicast_set_socket_timeout(sockfd, 1, 0);
 
     socklen = sizeof(UsbipGroupSock);
-    if ((ret = sendto(sockfd,
-                      &ack,
-                      strlen(ack),
-                      0,
-                      (struct sockaddr*)&UsbipGroupSock,
-                      socklen)) < 0) {
+    if ((ret = sendto(sockfd, &ack, strlen(ack), 0, (struct sockaddr *)&UsbipGroupSock, socklen)) <
+        0) {
         printf("multicast_event: sendto error\n");
     }
     close(sockfd);

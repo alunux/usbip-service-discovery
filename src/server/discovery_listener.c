@@ -31,8 +31,7 @@
 #define USBIP_GROUP_ADDR "239.255.0.1"
 #define LISTENPORT 10296
 
-int
-main(void)
+int main(void)
 {
     struct sockaddr_in LocalSock;
     struct ip_mreq UsbipGroup;
@@ -53,9 +52,7 @@ main(void)
 
     {
         int reuse = 1;
-        if (setsockopt(
-              sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(reuse)) <
-            0) {
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)) < 0) {
             perror("setting SO_REUSEADDR");
             close(sockfd);
             exit(1);
@@ -66,7 +63,7 @@ main(void)
     LocalSock.sin_port = htons(LISTENPORT);
     LocalSock.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    status = bind(sockfd, (struct sockaddr*)&LocalSock, sizeof(LocalSock));
+    status = bind(sockfd, (struct sockaddr *)&LocalSock, sizeof(LocalSock));
     if (status < 0) {
         perror("binding datagram socket");
         close(sockfd);
@@ -76,11 +73,8 @@ main(void)
     UsbipGroup.imr_multiaddr.s_addr = inet_addr(USBIP_GROUP_ADDR);
     UsbipGroup.imr_interface.s_addr = inet_addr(get_iface_addr());
 
-    if (setsockopt(sockfd,
-                   IPPROTO_IP,
-                   IP_ADD_MEMBERSHIP,
-                   (char*)&UsbipGroup,
-                   sizeof(UsbipGroup)) < 0) {
+    if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&UsbipGroup, sizeof(UsbipGroup)) <
+        0) {
         perror("setup multicast group");
         close(sockfd);
         exit(1);
@@ -89,20 +83,16 @@ main(void)
     while (1) {
         printf("Discovery Listener: listening on %s...\n", get_iface_addr());
         socklen = sizeof(LocalSock);
-        status = recvfrom(
-          sockfd, &ack, sizeof(ack), 0, (struct sockaddr*)&LocalSock, &socklen);
+        status = recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&LocalSock, &socklen);
 
         if (status < 0) {
             perror("recvfrom");
         } else {
-            printf("received %d bytes from %s\n",
-                   status,
-                   inet_ntoa(LocalSock.sin_addr));
+            printf("received %d bytes from %s\n", status, inet_ntoa(LocalSock.sin_addr));
             printf("Discovery Listener: packet is %d bytes\n", status);
             printf("Discovery Listener: packet contains \"%d\"\n", ack);
             do {
-                status = sendto(
-                  sockfd, NULL, 0, 0, (struct sockaddr*)&LocalSock, socklen);
+                status = sendto(sockfd, NULL, 0, 0, (struct sockaddr *)&LocalSock, socklen);
             } while (status < 0);
         }
         printf("\n");

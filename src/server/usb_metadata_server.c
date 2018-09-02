@@ -36,8 +36,7 @@
 
 #define JSON_PORT 10796
 
-static void
-sigchld_handler(__attribute__((unused)) int s)
+static void sigchld_handler(__attribute__((unused)) int s)
 {
     int saved_errno = errno;
     while (waitpid(-1, NULL, WNOHANG) > 0)
@@ -45,8 +44,7 @@ sigchld_handler(__attribute__((unused)) int s)
     errno = saved_errno;
 }
 
-static int
-sendall(int s, const char* buf, uint32_t* len)
+static int sendall(int s, const char *buf, uint32_t *len)
 {
     uint32_t total = 0;
     uint32_t bytesleft = *len;
@@ -63,15 +61,14 @@ sendall(int s, const char* buf, uint32_t* len)
     return n == -1 ? -1 : 0;
 }
 
-int
-main(void)
+int main(void)
 {
     int sockfd = 0, connfd = 0, status = 0;
     struct sockaddr_in serv_addr;
     struct sigaction sa;
 
-    json_object* usb_json = NULL;
-    const char* temp_json;
+    json_object *usb_json = NULL;
+    const char *temp_json;
     uint32_t json_size = 0;
 
     memset(&serv_addr, '0', sizeof(serv_addr));
@@ -87,15 +84,14 @@ main(void)
 
     {
         int reuse = 1;
-        if (setsockopt(
-              sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
             perror("send_data: setsockopt");
             close(sockfd);
             exit(1);
         }
     }
 
-    if (bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("send_data: bind");
         close(sockfd);
         exit(1);
@@ -117,10 +113,9 @@ main(void)
 
     usb_json = get_devices();
 
-    temp_json =
-      json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN);
+    temp_json = json_object_to_json_string_ext(usb_json, JSON_C_TO_STRING_PLAIN);
     json_size = strlen(temp_json) + 1;
-    char* usb_dev_json = (char*)malloc(json_size);
+    char *usb_dev_json = (char *)malloc(json_size);
     memset(usb_dev_json, '\0', sizeof(char) * json_size);
     strncpy(usb_dev_json, temp_json, json_size);
 
@@ -129,7 +124,7 @@ main(void)
     printf("send_data: waiting for calling...\n");
 
     while (1) {
-        connfd = accept(sockfd, (struct sockaddr*)NULL, NULL);
+        connfd = accept(sockfd, (struct sockaddr *)NULL, NULL);
         if (connfd < 0) {
             perror("send_data: accept");
             continue;

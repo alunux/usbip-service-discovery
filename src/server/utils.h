@@ -19,7 +19,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-int
-modify_match_busid(const char* busid, int add);
+int modify_match_busid(const char *busid, int add);
 
 #endif /* UTILS_H */

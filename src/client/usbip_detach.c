@@ -29,8 +29,7 @@
 #include "usbip_network.h"
 #include "vhci_driver.h"
 
-int
-detach_port(const char* port)
+int detach_port(const char *port)
 {
     int ret;
     uint8_t portnum;

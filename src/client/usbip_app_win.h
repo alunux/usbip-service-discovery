@@ -18,20 +18,14 @@
 #ifndef _USBIP_APP_WIN_H
 #define _USBIP_APP_WIN_H
 
-#include <gtk/gtk.h>
 #include "usbip_app.h"
+#include <gtk/gtk.h>
 
 #define USBIP_APP_WIN_TYPE (usbip_app_win_get_type())
 
-G_DECLARE_FINAL_TYPE(UsbipAppWin,
-                     usbip_app_win,
-                     USBIP_APP,
-                     WIN,
-                     GtkApplicationWindow)
+G_DECLARE_FINAL_TYPE(UsbipAppWin, usbip_app_win, USBIP_APP, WIN, GtkApplicationWindow)
 
-UsbipAppWin*
-usbip_app_win_new(UsbipApp* app);
-void
-usbip_app_win_refresh_list(UsbipAppWin *app);
+UsbipAppWin *usbip_app_win_new(UsbipApp *app);
+void usbip_app_win_refresh_list(UsbipAppWin *app);
 
 #endif /* _USBIP_APP_WIN_H */

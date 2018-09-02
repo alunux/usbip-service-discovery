@@ -37,8 +37,7 @@
 #define JSON_PORT 10796
 #define LISTENPORT 10296
 
-static int
-discover_recv_connect(const char* node_addr)
+static int discover_recv_connect(const char *node_addr)
 {
     struct sockaddr_in serv_addr;
     int sockfd;
@@ -59,7 +58,7 @@ discover_recv_connect(const char* node_addr)
         return -1;
     }
 
-    if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("recv_data: connect");
         return -1;
     }
@@ -67,12 +66,11 @@ discover_recv_connect(const char* node_addr)
     return sockfd;
 }
 
-static json_object*
-discover_recv_usb_desc_json(const char node_addr[])
+static json_object *discover_recv_usb_desc_json(const char node_addr[])
 {
     struct timespec start, stop;
 
-    static json_object* usb_json;
+    static json_object *usb_json;
 
     int sockfd, n;
     uint32_t json_size;
@@ -89,7 +87,7 @@ discover_recv_usb_desc_json(const char node_addr[])
         return NULL;
     }
 
-    char* recvBuff = calloc(1, json_size * sizeof(char));
+    char *recvBuff = calloc(1, json_size * sizeof(char));
     do {
         n = recv(sockfd, recvBuff, json_size, 0);
         if (n < 0) {
@@ -105,10 +103,9 @@ discover_recv_usb_desc_json(const char node_addr[])
     return usb_json;
 }
 
-const char*
-discover_query_usb_desc(json_object* root, const char* key)
+const char *discover_query_usb_desc(json_object *root, const char *key)
 {
-    json_object* ret_val;
+    json_object *ret_val;
 
     if (json_object_object_get_ex(root, key, &ret_val))
         return json_object_get_string(ret_val);
@@ -116,21 +113,20 @@ discover_query_usb_desc(json_object* root, const char* key)
     return NULL;
 }
 
-json_object*
-discover_get_json(void)
+json_object *discover_get_json(void)
 {
     struct timespec start, stop;
 
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
-    json_object* usb_json;
+    json_object *usb_json;
 
     int status;
     int sockfd;
     int ack = 1;
     int n_node = 0;
     char node_addr[10][16];
-    const char* iface_name;
+    const char *iface_name;
     socklen_t socklen;
 
     pid_t pid;
@@ -161,12 +157,7 @@ discover_get_json(void)
     multicast_set_socket_timeout(sockfd, 1, 0);
 
     socklen = sizeof(NekoFiGroupSock);
-    status = sendto(sockfd,
-                    &ack,
-                    sizeof(ack),
-                    0,
-                    (struct sockaddr*)&NekoFiGroupSock,
-                    socklen);
+    status = sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&NekoFiGroupSock, socklen);
     if (status < 0) {
         perror("failed to sendto");
         goto complete;
@@ -175,8 +166,7 @@ discover_get_json(void)
     // printf("Uji kinerja pencarian perangkat penyedia\n");
     while (1) {
         clock_gettime(CLOCK_REALTIME, &start);
-        status = recvfrom(
-          sockfd, NULL, 0, 0, (struct sockaddr*)&NekoFiGroupSock, &socklen);
+        status = recvfrom(sockfd, NULL, 0, 0, (struct sockaddr *)&NekoFiGroupSock, &socklen);
         clock_gettime(CLOCK_REALTIME, &stop);
 
         if (status < 0) {
@@ -196,14 +186,12 @@ discover_get_json(void)
 
         pid = fork();
         if (pid == 0) {
-            strncpy(node_addr[n_node],
-                    inet_ntoa(NekoFiGroupSock.sin_addr),
+            strncpy(node_addr[n_node], inet_ntoa(NekoFiGroupSock.sin_addr),
                     sizeof(node_addr[n_node]));
             close(fd[n_node][0]);
 
             do {
-                ret_wr = write(
-                  fd[n_node][1], node_addr[n_node], sizeof(node_addr[n_node]));
+                ret_wr = write(fd[n_node][1], node_addr[n_node], sizeof(node_addr[n_node]));
             } while (ret_wr != sizeof(node_addr[n_node]));
 
             close(fd[n_node][1]);
@@ -216,8 +204,7 @@ discover_get_json(void)
             wait(NULL);
 
             do {
-                ret_wr = read(
-                  fd[n_node][0], node_addr[n_node], sizeof(node_addr[n_node]));
+                ret_wr = read(fd[n_node][0], node_addr[n_node], sizeof(node_addr[n_node]));
             } while (ret_wr != sizeof(node_addr[n_node]));
 
             close(fd[n_node][0]);
@@ -227,7 +214,7 @@ discover_get_json(void)
     }
 
     clock_gettime(CLOCK_REALTIME, &start);
-    json_object* add_usb_tolist;
+    json_object *add_usb_tolist;
     if (n_node > 0) {
         for (int i = 0; i < n_node; i++) {
             add_usb_tolist = discover_recv_usb_desc_json(node_addr[i]);
@@ -243,7 +230,8 @@ discover_get_json(void)
         //          JSON_C_TO_STRING_PRETTY));
     }
     clock_gettime(CLOCK_REALTIME, &stop);
-    double result = (stop.tv_sec - start.tv_sec) * 1e3 + (stop.tv_nsec - start.tv_nsec) / 1e6; // in milidetik
+    double result =
+        (stop.tv_sec - start.tv_sec) * 1e3 + (stop.tv_nsec - start.tv_nsec) / 1e6; // in milidetik
     g_print("%f milidetik\n", result);
 
 complete:

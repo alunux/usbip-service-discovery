@@ -31,22 +31,14 @@
 enum unbind_status { UNBIND_ST_OK, UNBIND_ST_USBIP_HOST, UNBIND_ST_FAILED };
 
 /* call at unbound state */
-static int
-bind_usbip(const char* busid)
+static int bind_usbip(const char *busid)
 {
     char attr_name[] = "bind";
     char bind_attr_path[SYSFS_PATH_MAX];
     int rc = -1;
 
-    snprintf(bind_attr_path,
-             sizeof(bind_attr_path),
-             "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH,
-             SYSFS_BUS_NAME,
-             SYSFS_BUS_TYPE,
-             SYSFS_DRIVERS_NAME,
-             USBIP_HOST_DRV_NAME,
-             attr_name);
+    snprintf(bind_attr_path, sizeof(bind_attr_path), "%s/%s/%s/%s/%s/%s", SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME, SYSFS_BUS_TYPE, SYSFS_DRIVERS_NAME, USBIP_HOST_DRV_NAME, attr_name);
 
     rc = write_sysfs_attribute(bind_attr_path, busid, strlen(busid));
     if (rc < 0) {
@@ -58,8 +50,7 @@ bind_usbip(const char* busid)
 }
 
 /* buggy driver may cause dead lock */
-static int
-unbind_other(const char* busid)
+static int unbind_other(const char *busid)
 {
     enum unbind_status status = UNBIND_ST_OK;
 
@@ -67,10 +58,10 @@ unbind_other(const char* busid)
     char unbind_attr_path[SYSFS_PATH_MAX];
     int rc = -1;
 
-    struct udev* udev;
-    struct udev_device* dev;
-    const char* driver;
-    const char* bDevClass;
+    struct udev *udev;
+    struct udev_device *dev;
+    const char *driver;
+    const char *bDevClass;
 
     /* Create libudev context. */
     udev = udev_new();
@@ -108,15 +99,8 @@ unbind_other(const char* busid)
     }
 
     /* Unbind device from driver. */
-    snprintf(unbind_attr_path,
-             sizeof(unbind_attr_path),
-             "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH,
-             SYSFS_BUS_NAME,
-             SYSFS_BUS_TYPE,
-             SYSFS_DRIVERS_NAME,
-             driver,
-             attr_name);
+    snprintf(unbind_attr_path, sizeof(unbind_attr_path), "%s/%s/%s/%s/%s/%s", SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME, SYSFS_BUS_TYPE, SYSFS_DRIVERS_NAME, driver, attr_name);
 
     rc = write_sysfs_attribute(unbind_attr_path, busid, strlen(busid));
     if (rc < 0) {
@@ -135,12 +119,11 @@ out:
     return status;
 }
 
-int
-bind_device(const char* busid)
+int bind_device(const char *busid)
 {
     int rc;
-    struct udev* udev;
-    struct udev_device* dev;
+    struct udev *udev;
+    struct udev_device *dev;
 
     /* Check whether the device with this bus ID exists. */
     udev = udev_new();
@@ -156,9 +139,7 @@ bind_device(const char* busid)
         err("could not unbind driver from device on busid %s", busid);
         return -1;
     } else if (rc == UNBIND_ST_USBIP_HOST) {
-        err("device on busid %s is already bound to %s",
-            busid,
-            USBIP_HOST_DRV_NAME);
+        err("device on busid %s is already bound to %s", busid, USBIP_HOST_DRV_NAME);
         return -1;
     }
 

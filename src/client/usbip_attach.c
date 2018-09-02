@@ -38,11 +38,7 @@
 #include "vhci_driver.h"
 
 #define MAX_BUFF 100
-static int
-record_connection(const char* host,
-                  const char* port,
-                  const char* busid,
-                  int rhport)
+static int record_connection(const char *host, const char *port, const char *busid, int rhport)
 {
     int fd;
     char path[PATH_MAX + 1];
@@ -83,8 +79,7 @@ record_connection(const char* host,
     return 0;
 }
 
-static int
-import_device(int sockfd, struct usbip_usb_device* udev)
+static int import_device(int sockfd, struct usbip_usb_device *udev)
 {
     int rc;
     int port;
@@ -105,8 +100,7 @@ import_device(int sockfd, struct usbip_usb_device* udev)
 
         dbg("got free port %d", port);
 
-        rc = usbip_vhci_attach_device(
-          port, sockfd, udev->busnum, udev->devnum, udev->speed);
+        rc = usbip_vhci_attach_device(port, sockfd, udev->busnum, udev->devnum, udev->speed);
         if (rc < 0 && errno != EBUSY) {
             err("import device");
             goto err_driver_close;
@@ -123,8 +117,7 @@ err_out:
     return -1;
 }
 
-static int
-query_import_device(int sockfd, const char* busid)
+static int query_import_device(int sockfd, const char *busid)
 {
     int rc;
     struct op_import_request request;
@@ -145,7 +138,7 @@ query_import_device(int sockfd, const char* busid)
 
     PACK_OP_IMPORT_REQUEST(0, &request);
 
-    rc = usbip_net_send(sockfd, (void*)&request, sizeof(request));
+    rc = usbip_net_send(sockfd, (void *)&request, sizeof(request));
     if (rc < 0) {
         err("send op_import_request");
         return -1;
@@ -158,7 +151,7 @@ query_import_device(int sockfd, const char* busid)
         return -1;
     }
 
-    rc = usbip_net_recv(sockfd, (void*)&reply, sizeof(reply));
+    rc = usbip_net_recv(sockfd, (void *)&reply, sizeof(reply));
     if (rc < 0) {
         err("recv op_import_reply");
         return -1;
@@ -176,8 +169,7 @@ query_import_device(int sockfd, const char* busid)
     return import_device(sockfd, &reply.udev);
 }
 
-int
-check_device_state(const char* host, const char* busid)
+int check_device_state(const char *host, const char *busid)
 {
     int sockfd;
     int rc;
@@ -202,7 +194,7 @@ check_device_state(const char* host, const char* busid)
 
     PACK_OP_IMPORT_REQUEST(0, &request);
 
-    rc = usbip_net_send(sockfd, (void*)&request, sizeof(request));
+    rc = usbip_net_send(sockfd, (void *)&request, sizeof(request));
     if (rc < 0) {
         err("send op_import_request");
         return -1;
@@ -218,8 +210,7 @@ check_device_state(const char* host, const char* busid)
     return 0;
 }
 
-int
-attach_device(const char* host, const char* busid)
+int attach_device(const char *host, const char *busid)
 {
     int sockfd;
     int rc;
@@ -239,11 +230,8 @@ attach_device(const char* host, const char* busid)
 
     close(sockfd);
 
-    printf("host: %s, usbip_port_string: %s, busid: %s, rhport: %d\n",
-           host,
-           usbip_port_string,
-           busid,
-           rhport);
+    printf("host: %s, usbip_port_string: %s, busid: %s, rhport: %d\n", host, usbip_port_string,
+           busid, rhport);
 
     rc = record_connection(host, usbip_port_string, busid, rhport);
     if (rc < 0) {

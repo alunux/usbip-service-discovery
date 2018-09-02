@@ -33,13 +33,12 @@
 #include "usbip_network.h"
 
 int usbip_port = 3240;
-const char* usbip_port_string = "3240";
+const char *usbip_port_string = "3240";
 
-void
-usbip_setup_port_number(const char* arg)
+void usbip_setup_port_number(const char *arg)
 {
     dbg("parsing port arg '%s'", arg);
-    char* end;
+    char *end;
     unsigned long int port = strtoul(arg, &end, 10);
 
     if (end == arg) {
@@ -62,8 +61,7 @@ usbip_setup_port_number(const char* arg)
     info("using port %d (\"%s\")", usbip_port, usbip_port_string);
 }
 
-void
-usbip_net_pack_uint32_t(int pack, uint32_t* num)
+void usbip_net_pack_uint32_t(int pack, uint32_t *num)
 {
     uint32_t i;
 
@@ -75,8 +73,7 @@ usbip_net_pack_uint32_t(int pack, uint32_t* num)
     *num = i;
 }
 
-void
-usbip_net_pack_uint16_t(int pack, uint16_t* num)
+void usbip_net_pack_uint16_t(int pack, uint16_t *num)
 {
     uint16_t i;
 
@@ -88,8 +85,7 @@ usbip_net_pack_uint16_t(int pack, uint16_t* num)
     *num = i;
 }
 
-void
-usbip_net_pack_usb_device(int pack, struct usbip_usb_device* udev)
+void usbip_net_pack_usb_device(int pack, struct usbip_usb_device *udev)
 {
     usbip_net_pack_uint32_t(pack, &udev->busnum);
     usbip_net_pack_uint32_t(pack, &udev->devnum);
@@ -100,16 +96,13 @@ usbip_net_pack_usb_device(int pack, struct usbip_usb_device* udev)
     usbip_net_pack_uint16_t(pack, &udev->bcdDevice);
 }
 
-void
-usbip_net_pack_usb_interface(int pack __attribute__((unused)),
-                             struct usbip_usb_interface* udev
-                             __attribute__((unused)))
+void usbip_net_pack_usb_interface(int pack __attribute__((unused)),
+                                  struct usbip_usb_interface *udev __attribute__((unused)))
 {
     /* uint8_t members need nothing */
 }
 
-static ssize_t
-usbip_net_xmit(int sockfd, void* buff, size_t bufflen, int sending)
+static ssize_t usbip_net_xmit(int sockfd, void *buff, size_t bufflen, int sending)
 {
     ssize_t nbytes;
     ssize_t total = 0;
@@ -126,7 +119,7 @@ usbip_net_xmit(int sockfd, void* buff, size_t bufflen, int sending)
         if (nbytes <= 0)
             return -1;
 
-        buff = (void*)((intptr_t)buff + nbytes);
+        buff = (void *)((intptr_t)buff + nbytes);
         bufflen -= nbytes;
         total += nbytes;
     } while (bufflen > 0);
@@ -134,20 +127,17 @@ usbip_net_xmit(int sockfd, void* buff, size_t bufflen, int sending)
     return total;
 }
 
-ssize_t
-usbip_net_recv(int sockfd, void* buff, size_t bufflen)
+ssize_t usbip_net_recv(int sockfd, void *buff, size_t bufflen)
 {
     return usbip_net_xmit(sockfd, buff, bufflen, 0);
 }
 
-ssize_t
-usbip_net_send(int sockfd, void* buff, size_t bufflen)
+ssize_t usbip_net_send(int sockfd, void *buff, size_t bufflen)
 {
     return usbip_net_xmit(sockfd, buff, bufflen, 1);
 }
 
-int
-usbip_net_send_op_common(int sockfd, uint32_t code, uint32_t status)
+int usbip_net_send_op_common(int sockfd, uint32_t code, uint32_t status)
 {
     struct op_common op_common;
     int rc;
@@ -169,8 +159,7 @@ usbip_net_send_op_common(int sockfd, uint32_t code, uint32_t status)
     return 0;
 }
 
-int
-usbip_net_recv_op_common(int sockfd, uint16_t* code)
+int usbip_net_recv_op_common(int sockfd, uint16_t *code)
 {
     struct op_common op_common;
     int rc;
@@ -191,13 +180,13 @@ usbip_net_recv_op_common(int sockfd, uint16_t* code)
     }
 
     switch (*code) {
-        case OP_UNSPEC:
-            break;
-        default:
-            if (op_common.code != *code) {
-                dbg("unexpected pdu %#0x for %#0x", op_common.code, *code);
-                goto err;
-            }
+    case OP_UNSPEC:
+        break;
+    default:
+        if (op_common.code != *code) {
+            dbg("unexpected pdu %#0x for %#0x", op_common.code, *code);
+            goto err;
+        }
     }
 
     if (op_common.status != ST_OK) {
@@ -212,8 +201,7 @@ err:
     return -1;
 }
 
-int
-usbip_net_set_reuseaddr(int sockfd)
+int usbip_net_set_reuseaddr(int sockfd)
 {
     const int val = 1;
     int ret;
@@ -225,8 +213,7 @@ usbip_net_set_reuseaddr(int sockfd)
     return ret;
 }
 
-int
-usbip_net_set_nodelay(int sockfd)
+int usbip_net_set_nodelay(int sockfd)
 {
     const int val = 1;
     int ret;
@@ -238,8 +225,7 @@ usbip_net_set_nodelay(int sockfd)
     return ret;
 }
 
-int
-usbip_net_set_keepalive(int sockfd)
+int usbip_net_set_keepalive(int sockfd)
 {
     const int val = 1;
     int ret;
@@ -251,8 +237,7 @@ usbip_net_set_keepalive(int sockfd)
     return ret;
 }
 
-int
-usbip_net_set_v6only(int sockfd)
+int usbip_net_set_v6only(int sockfd)
 {
     const int val = 1;
     int ret;
@@ -267,8 +252,7 @@ usbip_net_set_v6only(int sockfd)
 /*
  * IPv6 Ready
  */
-int
-usbip_net_tcp_connect(const char* hostname, const char* service)
+int usbip_net_tcp_connect(const char *hostname, const char *service)
 {
     struct addrinfo hints, *res, *rp;
     int sockfd;
@@ -281,10 +265,7 @@ usbip_net_tcp_connect(const char* hostname, const char* service)
     /* get all possible addresses */
     ret = getaddrinfo(hostname, service, &hints, &res);
     if (ret < 0) {
-        dbg("getaddrinfo: %s service %s: %s",
-            hostname,
-            service,
-            gai_strerror(ret));
+        dbg("getaddrinfo: %s service %s: %s", hostname, service, gai_strerror(ret));
         return ret;
     }
 

@@ -60,54 +60,48 @@
 
 static const char usbip_version_string[] = "usbip-utils 2.0";
 
-static const char usbipd_help_string[] =
-  "usage: usbipd [options]\n"
-  "\n"
-  "	-4, --ipv4\n"
-  "		Bind to IPv4. Default is both.\n"
-  "\n"
-  "	-6, --ipv6\n"
-  "		Bind to IPv6. Default is both.\n"
-  "\n"
-  "	-e, --device\n"
-  "		Run in device mode.\n"
-  "		Rather than drive an attached device, create\n"
-  "		a virtual UDC to bind gadgets to.\n"
-  "\n"
-  "	-D, --daemon\n"
-  "		Run as a daemon process.\n"
-  "\n"
-  "	-d, --debug\n"
-  "		Print debugging information.\n"
-  "\n"
-  "	-PFILE, --pid FILE\n"
-  "		Write process id to FILE.\n"
-  "		If no FILE specified, use " DEFAULT_PID_FILE "\n"
-  "\n"
-  "	-tPORT, --tcp-port PORT\n"
-  "		Listen on TCP/IP port PORT.\n"
-  "\n"
-  "	-h, --help\n"
-  "		Print this help.\n"
-  "\n"
-  "	-v, --version\n"
-  "		Show version.\n";
+static const char usbipd_help_string[] = "usage: usbipd [options]\n"
+                                         "\n"
+                                         "	-4, --ipv4\n"
+                                         "		Bind to IPv4. Default is both.\n"
+                                         "\n"
+                                         "	-6, --ipv6\n"
+                                         "		Bind to IPv6. Default is both.\n"
+                                         "\n"
+                                         "	-e, --device\n"
+                                         "		Run in device mode.\n"
+                                         "		Rather than drive an attached device, create\n"
+                                         "		a virtual UDC to bind gadgets to.\n"
+                                         "\n"
+                                         "	-D, --daemon\n"
+                                         "		Run as a daemon process.\n"
+                                         "\n"
+                                         "	-d, --debug\n"
+                                         "		Print debugging information.\n"
+                                         "\n"
+                                         "	-PFILE, --pid FILE\n"
+                                         "		Write process id to FILE.\n"
+                                         "		If no FILE specified, use " DEFAULT_PID_FILE "\n"
+                                         "\n"
+                                         "	-tPORT, --tcp-port PORT\n"
+                                         "		Listen on TCP/IP port PORT.\n"
+                                         "\n"
+                                         "	-h, --help\n"
+                                         "		Print this help.\n"
+                                         "\n"
+                                         "	-v, --version\n"
+                                         "		Show version.\n";
 
-static struct usbip_host_driver* driver;
+static struct usbip_host_driver *driver;
 
-static void
-usbipd_help(void)
-{
-    printf("%s\n", usbipd_help_string);
-}
+static void usbipd_help(void) { printf("%s\n", usbipd_help_string); }
 
-static int
-recv_request_import(int sockfd)
+static int recv_request_import(int sockfd)
 {
     struct op_import_request req;
-    struct usbip_exported_device* edev;
+    struct usbip_exported_device *edev;
     struct usbip_usb_device pdu_udev;
-    struct list_head* i;
+    struct list_head *i;
     int found = 0;
     int error = 0;
     int rc;
@@ -144,8 +138,7 @@ recv_request_import(int sockfd)
         error = 1;
     }
 
-    rc =
-      usbip_net_send_op_common(sockfd, OP_REP_IMPORT, (!error ? ST_OK : ST_NA));
+    rc = usbip_net_send_op_common(sockfd, OP_REP_IMPORT, (!error ? ST_OK : ST_NA));
     if (rc < 0) {
         dbg("usbip_net_send_op_common failed: %#0x", OP_REP_IMPORT);
         return -1;
@@ -170,14 +163,13 @@ recv_request_import(int sockfd)
     return 0;
 }
 
-static int
-send_reply_devlist(int connfd)
+static int send_reply_devlist(int connfd)
 {
-    struct usbip_exported_device* edev;
+    struct usbip_exported_device *edev;
     struct usbip_usb_device pdu_udev;
     struct usbip_usb_interface pdu_uinf;
     struct op_devlist_reply reply;
-    struct list_head* j;
+    struct list_head *j;
     int rc, i;
 
     reply.ndev = 0;
@@ -227,8 +219,7 @@ send_reply_devlist(int connfd)
     return 0;
 }
 
-static int
-recv_request_devlist(int connfd)
+static int recv_request_devlist(int connfd)
 {
     struct op_devlist_request req;
     int rc;
@@ -250,8 +241,7 @@ recv_request_devlist(int connfd)
     return 0;
 }
 
-static int
-recv_pdu(int connfd)
+static int recv_pdu(int connfd)
 {
     uint16_t code = OP_UNSPEC;
     int ret;
@@ -270,17 +260,17 @@ recv_pdu(int connfd)
 
     info("received request: %#0x(%d)", code, connfd);
     switch (code) {
-        case OP_REQ_DEVLIST:
-            ret = recv_request_devlist(connfd);
-            break;
-        case OP_REQ_IMPORT:
-            ret = recv_request_import(connfd);
-            break;
-        case OP_REQ_DEVINFO:
-        case OP_REQ_CRYPKEY:
-        default:
-            err("received an unknown opcode: %#0x", code);
-            ret = -1;
+    case OP_REQ_DEVLIST:
+        ret = recv_request_devlist(connfd);
+        break;
+    case OP_REQ_IMPORT:
+        ret = recv_request_import(connfd);
+        break;
+    case OP_REQ_DEVINFO:
+    case OP_REQ_CRYPKEY:
+    default:
+        err("received an unknown opcode: %#0x", code);
+        ret = -1;
     }
 
     if (ret == 0)
@@ -292,8 +282,7 @@ recv_pdu(int connfd)
 }
 
 #ifdef HAVE_LIBWRAP
-static int
-tcpd_auth(int connfd)
+static int tcpd_auth(int connfd)
 {
     struct request_info request;
     int rc;
@@ -308,8 +297,7 @@ tcpd_auth(int connfd)
 }
 #endif
 
-static int
-do_accept(int listenfd)
+static int do_accept(int listenfd)
 {
     int connfd;
     struct sockaddr_storage ss;
@@ -319,18 +307,13 @@ do_accept(int listenfd)
 
     memset(&ss, 0, sizeof(ss));
 
-    connfd = accept(listenfd, (struct sockaddr*)&ss, &len);
+    connfd = accept(listenfd, (struct sockaddr *)&ss, &len);
     if (connfd < 0) {
         err("failed to accept connection");
         return -1;
     }
 
-    rc = getnameinfo((struct sockaddr*)&ss,
-                     len,
-                     host,
-                     sizeof(host),
-                     port,
-                     sizeof(port),
+    rc = getnameinfo((struct sockaddr *)&ss, len, host, sizeof(host), port, sizeof(port),
                      NI_NUMERICHOST | NI_NUMERICSERV);
     if (rc)
         err("getnameinfo: %s", gai_strerror(rc));
@@ -348,8 +331,7 @@ do_accept(int listenfd)
     return connfd;
 }
 
-int
-process_request(int listenfd)
+int process_request(int listenfd)
 {
     pid_t childpid;
     int connfd;
@@ -367,8 +349,7 @@ process_request(int listenfd)
     return 0;
 }
 
-static void
-addrinfo_to_text(struct addrinfo* ai, char buf[], const size_t buf_size)
+static void addrinfo_to_text(struct addrinfo *ai, char buf[], const size_t buf_size)
 {
     char hbuf[NI_MAXHOST];
     char sbuf[NI_MAXSERV];
@@ -376,12 +357,7 @@ addrinfo_to_text(struct addrinfo* ai, char buf[], const size_t buf_size)
 
     buf[0] = '\0';
 
-    rc = getnameinfo(ai->ai_addr,
-                     ai->ai_addrlen,
-                     hbuf,
-                     sizeof(hbuf),
-                     sbuf,
-                     sizeof(sbuf),
+    rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
                      NI_NUMERICHOST | NI_NUMERICSERV);
     if (rc)
         err("getnameinfo: %s", gai_strerror(rc));
@@ -389,10 +365,9 @@ addrinfo_to_text(struct addrinfo* ai, char buf[], const size_t buf_size)
     snprintf(buf, buf_size, "%s:%s", hbuf, sbuf);
 }
 
-static int
-listen_all_addrinfo(struct addrinfo* ai_head, int sockfdlist[], int maxsockfd)
+static int listen_all_addrinfo(struct addrinfo *ai_head, int sockfdlist[], int maxsockfd)
 {
-    struct addrinfo* ai;
+    struct addrinfo *ai;
     int ret, nsockfd = 0;
     const size_t ai_buf_size = NI_MAXHOST + NI_MAXSERV + 2;
     char ai_buf[ai_buf_size];
@@ -435,8 +410,7 @@ listen_all_addrinfo(struct addrinfo* ai_head, int sockfdlist[], int maxsockfd)
     return nsockfd;
 }
 
-static struct addrinfo*
-do_getaddrinfo(const char* host, int ai_family)
+static struct addrinfo *do_getaddrinfo(const char *host, int ai_family)
 {
     struct addrinfo hints, *ai_head;
     int rc;
@@ -448,23 +422,16 @@ do_getaddrinfo(const char* host, int ai_family)
 
     rc = getaddrinfo(host, usbip_port_string, &hints, &ai_head);
     if (rc) {
-        err("failed to get a network address %s: %s",
-            usbip_port_string,
-            gai_strerror(rc));
+        err("failed to get a network address %s: %s", usbip_port_string, gai_strerror(rc));
         return NULL;
     }
 
     return ai_head;
 }
 
-static void
-signal_handler(int i)
-{
-    dbg("received '%s' signal", strsignal(i));
-}
+static void signal_handler(int i) { dbg("received '%s' signal", strsignal(i)); }
 
-static void
-set_signal(void)
+static void set_signal(void)
 {
     struct sigaction act;
 
@@ -477,14 +444,13 @@ set_signal(void)
     sigaction(SIGCLD, &act, NULL);
 }
 
-static const char* pid_file;
+static const char *pid_file;
 
-static void
-write_pid_file(void)
+static void write_pid_file(void)
 {
     if (pid_file) {
         dbg("creating pid file %s", pid_file);
-        FILE* fp;
+        FILE *fp;
 
         fp = fopen(pid_file, "w");
         if (!fp) {
@@ -496,8 +462,7 @@ write_pid_file(void)
     }
 }
 
-static void
-remove_pid_file(void)
+static void remove_pid_file(void)
 {
     if (pid_file) {
         dbg("removing pid file %s", pid_file);
@@ -505,14 +470,13 @@ remove_pid_file(void)
     }
 }
 
-static int
-do_standalone_mode(int daemonize, int ipv4, int ipv6)
+static int do_standalone_mode(int daemonize, int ipv4, int ipv6)
 {
-    struct addrinfo* ai_head;
+    struct addrinfo *ai_head;
     int sockfdlist[MAXSOCKFD];
     int nsockfd, family;
     int i, terminate;
-    struct pollfd* fds;
+    struct pollfd *fds;
     struct timespec timeout;
     sigset_t sigmask;
 
@@ -550,8 +514,7 @@ do_standalone_mode(int daemonize, int ipv4, int ipv6)
         usbip_driver_close(driver);
         return -1;
     }
-    nsockfd = listen_all_addrinfo(
-      ai_head, sockfdlist, sizeof(sockfdlist) / sizeof(*sockfdlist));
+    nsockfd = listen_all_addrinfo(ai_head, sockfdlist, sizeof(sockfdlist) / sizeof(*sockfdlist));
     freeaddrinfo(ai_head);
     if (nsockfd <= 0) {
         err("failed to open a listening socket");
@@ -600,22 +563,19 @@ do_standalone_mode(int daemonize, int ipv4, int ipv6)
     return 0;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    static const struct option longopts[] = {
-        { "ipv4", no_argument, NULL, '4' },
-        { "ipv6", no_argument, NULL, '6' },
-        { "daemon", no_argument, NULL, 'D' },
-        { "daemon", no_argument, NULL, 'D' },
-        { "debug", no_argument, NULL, 'd' },
-        { "device", no_argument, NULL, 'e' },
-        { "pid", optional_argument, NULL, 'P' },
-        { "tcp-port", required_argument, NULL, 't' },
-        { "help", no_argument, NULL, 'h' },
-        { "version", no_argument, NULL, 'v' },
-        { NULL, 0, NULL, 0 }
-    };
+    static const struct option longopts[] = {{"ipv4", no_argument, NULL, '4'},
+                                             {"ipv6", no_argument, NULL, '6'},
+                                             {"daemon", no_argument, NULL, 'D'},
+                                             {"daemon", no_argument, NULL, 'D'},
+                                             {"debug", no_argument, NULL, 'd'},
+                                             {"device", no_argument, NULL, 'e'},
+                                             {"pid", optional_argument, NULL, 'P'},
+                                             {"tcp-port", required_argument, NULL, 't'},
+                                             {"help", no_argument, NULL, 'h'},
+                                             {"version", no_argument, NULL, 'v'},
+                                             {NULL, 0, NULL, 0}};
 
     enum { cmd_standalone_mode = 1, cmd_help, cmd_version } cmd;
 
@@ -640,37 +600,37 @@ main(int argc, char* argv[])
             break;
 
         switch (opt) {
-            case '4':
-                ipv4 = 1;
-                break;
-            case '6':
-                ipv6 = 1;
-                break;
-            case 'D':
-                daemonize = 1;
-                break;
-            case 'd':
-                usbip_use_debug = 1;
-                break;
-            case 'h':
-                cmd = cmd_help;
-                break;
-            case 'P':
-                pid_file = optarg ? optarg : DEFAULT_PID_FILE;
-                break;
-            case 't':
-                usbip_setup_port_number(optarg);
-                break;
-            case 'v':
-                cmd = cmd_version;
-                break;
-            case 'e':
-                driver = &device_driver;
-                break;
-            case '?':
-                usbipd_help();
-            default:
-                goto err_out;
+        case '4':
+            ipv4 = 1;
+            break;
+        case '6':
+            ipv6 = 1;
+            break;
+        case 'D':
+            daemonize = 1;
+            break;
+        case 'd':
+            usbip_use_debug = 1;
+            break;
+        case 'h':
+            cmd = cmd_help;
+            break;
+        case 'P':
+            pid_file = optarg ? optarg : DEFAULT_PID_FILE;
+            break;
+        case 't':
+            usbip_setup_port_number(optarg);
+            break;
+        case 'v':
+            cmd = cmd_version;
+            break;
+        case 'e':
+            driver = &device_driver;
+            break;
+        case '?':
+            usbipd_help();
+        default:
+            goto err_out;
         }
     }
 
@@ -678,21 +638,21 @@ main(int argc, char* argv[])
         ipv4 = ipv6 = 1;
 
     switch (cmd) {
-        case cmd_standalone_mode:
-            rc = do_standalone_mode(daemonize, ipv4, ipv6);
-            remove_pid_file();
-            break;
-        case cmd_version:
-            printf(PROGNAME " (%s)\n", usbip_version_string);
-            rc = 0;
-            break;
-        case cmd_help:
-            usbipd_help();
-            rc = 0;
-            break;
-        default:
-            usbipd_help();
-            goto err_out;
+    case cmd_standalone_mode:
+        rc = do_standalone_mode(daemonize, ipv4, ipv6);
+        remove_pid_file();
+        break;
+    case cmd_version:
+        printf(PROGNAME " (%s)\n", usbip_version_string);
+        rc = 0;
+        break;
+    case cmd_help:
+        usbipd_help();
+        rc = 0;
+        break;
+    default:
+        usbipd_help();
+        goto err_out;
     }
 
 err_out:

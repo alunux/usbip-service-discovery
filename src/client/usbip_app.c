@@ -29,23 +29,19 @@
 struct _UsbipApp {
     GtkApplication parent;
 
-    GInetAddress* inetaddr;
-    GInetAddress* groupaddr;
-    GSocket* sock_event;
-    GSocketAddress* sockaddr;
+    GInetAddress *inetaddr;
+    GInetAddress *groupaddr;
+    GSocket *sock_event;
+    GSocketAddress *sockaddr;
 
-    char* wifi_iface;
+    char *wifi_iface;
 };
 
 G_DEFINE_TYPE(UsbipApp, usbip_app, GTK_TYPE_APPLICATION)
 
-static void
-usbip_app_init(__attribute__((unused)) UsbipApp* app)
-{
-}
+static void usbip_app_init(__attribute__((unused)) UsbipApp *app) {}
 
-static void
-usbip_app_dispose(GObject *obj)
+static void usbip_app_dispose(GObject *obj)
 {
     UsbipApp *self = USBIP_APP(obj);
 
@@ -57,8 +53,7 @@ usbip_app_dispose(GObject *obj)
     G_OBJECT_CLASS(usbip_app_parent_class)->dispose(obj);
 }
 
-static void
-usbip_app_finalize(GObject *obj)
+static void usbip_app_finalize(GObject *obj)
 {
     UsbipApp *self = USBIP_APP(obj);
 
@@ -67,10 +62,9 @@ usbip_app_finalize(GObject *obj)
     G_OBJECT_CLASS(usbip_app_parent_class)->finalize(obj);
 }
 
-static gboolean
-gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
+static gboolean gio_read_socket(GIOChannel *channel, GIOCondition condition, gpointer data)
 {
-    GError* error = NULL;
+    GError *error = NULL;
     char buf[1024];
     gsize bytes_read;
 
@@ -83,24 +77,24 @@ gio_read_socket(GIOChannel* channel, GIOCondition condition, gpointer data)
 
     g_print("Ada perubahan device\n");
 
-    UsbipAppWin* win = USBIP_APP_WIN(data);
+    UsbipAppWin *win = USBIP_APP_WIN(data);
     usbip_app_win_refresh_list(win);
 
     return TRUE;
 }
 
-static void
-usbip_app_activate(GApplication* app)
+static void usbip_app_activate(GApplication *app)
 {
     UsbipApp *self = USBIP_APP(app);
 
     gboolean ret;
-    GError* err = NULL;
+    GError *err = NULL;
 
     self->inetaddr = g_inet_address_new_any(G_SOCKET_FAMILY_IPV4);
     self->groupaddr = g_inet_address_new_from_string(USBIP_GROUP_ADDR);
     self->sockaddr = G_SOCKET_ADDRESS(g_inet_socket_address_new(self->inetaddr, LISTENPORT));
-    self->sock_event = g_socket_new(G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM, G_SOCKET_PROTOCOL_UDP, &err);
+    self->sock_event =
+        g_socket_new(G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM, G_SOCKET_PROTOCOL_UDP, &err);
 
     if (self->sock_event == NULL) {
         g_print("g_socket_new: %s\n", err->message);
@@ -122,17 +116,16 @@ usbip_app_activate(GApplication* app)
 
     int fd = g_socket_get_fd(self->sock_event);
 
-    UsbipAppWin* win = usbip_app_win_new(USBIP_APP(app));
+    UsbipAppWin *win = usbip_app_win_new(USBIP_APP(app));
     usbip_app_win_refresh_list(win);
     gtk_window_present(GTK_WINDOW(win));
 
-    GIOChannel* channel = g_io_channel_unix_new(fd);
+    GIOChannel *channel = g_io_channel_unix_new(fd);
     g_io_add_watch(channel, G_IO_IN, (GIOFunc)gio_read_socket, win);
     g_io_channel_unref(channel);
 }
 
-static void
-usbip_app_class_init(UsbipAppClass* class)
+static void usbip_app_class_init(UsbipAppClass *class)
 {
     G_OBJECT_CLASS(class)->dispose = usbip_app_dispose;
     G_OBJECT_CLASS(class)->finalize = usbip_app_finalize;
@@ -140,13 +133,8 @@ usbip_app_class_init(UsbipAppClass* class)
     G_APPLICATION_CLASS(class)->activate = usbip_app_activate;
 }
 
-UsbipApp*
-usbip_app_new(void)
+UsbipApp *usbip_app_new(void)
 {
-    return g_object_new(USBIP_APP_TYPE,
-                        "application-id",
-                        "org.alunux.usbipapp",
-                        "flags",
-                        G_APPLICATION_FLAGS_NONE,
-                        NULL);
+    return g_object_new(USBIP_APP_TYPE, "application-id", "org.alunux.usbipapp", "flags",
+                        G_APPLICATION_FLAGS_NONE, NULL);
 }

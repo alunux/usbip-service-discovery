@@ -28,13 +28,9 @@
 #include <string.h>
 #include <sys/types.h>
 
-int
-total_usb_device(void);
-json_object*
-get_devices(void);
-int
-bind_device(const char* busid);
-int
-unbind_device(const char* busid);
+int total_usb_device(void);
+json_object *get_devices(void);
+int bind_device(const char *busid);
+int unbind_device(const char *busid);
 
 #endif /* DEVICE_H */

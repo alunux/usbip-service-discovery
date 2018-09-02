@@ -23,9 +23,7 @@
 
 #define UNUSED(...) (void)(__VA_ARGS__)
 
-const char*
-discover_query_usb_desc(json_object* root, const char* key);
-json_object*
-discover_get_json(void);
+const char *discover_query_usb_desc(json_object *root, const char *key);
+json_object *discover_get_json(void);
 
 #endif /* DISCOVER_H */

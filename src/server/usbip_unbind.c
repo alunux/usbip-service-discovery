@@ -27,20 +27,19 @@
 #include "usbip_common.h"
 #include "utils.h"
 
-int
-unbind_device(const char* busid)
+int unbind_device(const char *busid)
 {
-    const char* bus_type = "usb";
+    const char *bus_type = "usb";
     int rc, ret = -1;
 
-    const char* unbind_attr_name = "unbind";
-    const char* rebind_attr_name = "rebind";
+    const char *unbind_attr_name = "unbind";
+    const char *rebind_attr_name = "rebind";
     char unbind_attr_path[SYSFS_PATH_MAX];
     char rebind_attr_path[SYSFS_PATH_MAX];
 
-    struct udev* udev;
-    struct udev_device* dev;
-    const char* driver;
+    struct udev *udev;
+    struct udev_device *dev;
+    const char *driver;
 
     /* Create libudev context. */
     udev = udev_new();
@@ -60,15 +59,8 @@ unbind_device(const char* busid)
     }
 
     /* Unbind device from driver. */
-    snprintf(unbind_attr_path,
-             sizeof(unbind_attr_path),
-             "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH,
-             SYSFS_BUS_NAME,
-             bus_type,
-             SYSFS_DRIVERS_NAME,
-             USBIP_HOST_DRV_NAME,
-             unbind_attr_name);
+    snprintf(unbind_attr_path, sizeof(unbind_attr_path), "%s/%s/%s/%s/%s/%s", SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME, bus_type, SYSFS_DRIVERS_NAME, USBIP_HOST_DRV_NAME, unbind_attr_name);
 
     rc = write_sysfs_attribute(unbind_attr_path, busid, strlen(busid));
     if (rc < 0) {
@@ -84,15 +76,8 @@ unbind_device(const char* busid)
     }
 
     /* Trigger new probing. */
-    snprintf(rebind_attr_path,
-             sizeof(unbind_attr_path),
-             "%s/%s/%s/%s/%s/%s",
-             SYSFS_MNT_PATH,
-             SYSFS_BUS_NAME,
-             bus_type,
-             SYSFS_DRIVERS_NAME,
-             USBIP_HOST_DRV_NAME,
-             rebind_attr_name);
+    snprintf(rebind_attr_path, sizeof(unbind_attr_path), "%s/%s/%s/%s/%s/%s", SYSFS_MNT_PATH,
+             SYSFS_BUS_NAME, bus_type, SYSFS_DRIVERS_NAME, USBIP_HOST_DRV_NAME, rebind_attr_name);
 
     rc = write_sysfs_attribute(rebind_attr_path, busid, strlen(busid));
     if (rc < 0) {

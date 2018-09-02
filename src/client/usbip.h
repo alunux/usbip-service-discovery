@@ -25,11 +25,8 @@
 #endif
 
 /* usbip commands */
-int
-attach_device(const char* host, const char* busid);
-int
-detach_port(const char* port);
-int
-check_device_state(const char* host, const char* busid);
+int attach_device(const char *host, const char *busid);
+int detach_port(const char *port);
+int check_device_state(const char *host, const char *busid);
 
 #endif /* USBIP_H */

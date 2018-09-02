@@ -24,7 +24,6 @@
 
 G_DECLARE_FINAL_TYPE(UsbipApp, usbip_app, USBIP, APP, GtkApplication)
 
-UsbipApp*
-usbip_app_new(void);
+UsbipApp *usbip_app_new(void);
 
 #endif /* _USBIP_APP_H */

@@ -36,8 +36,7 @@
 #define USBIP_GROUP_ADDR "239.255.0.1"
 #define LISTENPORT 10297
 
-static void
-broadcast_event(void)
+static void broadcast_event(void)
 {
     struct in_addr LocalIface;
     struct sockaddr_in UsbipGroupSock;
@@ -64,11 +63,7 @@ broadcast_event(void)
 
     {
         char reuse = '0';
-        if (setsockopt(sockfd,
-                       IPPROTO_IP,
-                       IP_MULTICAST_LOOP,
-                       (char*)&reuse,
-                       sizeof(reuse)) < 0) {
+        if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&reuse, sizeof(reuse)) < 0) {
             perror("setting IP_MULTICAST_LOOP");
             close(sockfd);
             exit(1);
@@ -76,37 +71,29 @@ broadcast_event(void)
     }
 
     LocalIface.s_addr = inet_addr(get_iface_addr());
-    if (setsockopt(sockfd,
-                   IPPROTO_IP,
-                   IP_MULTICAST_IF,
-                   (char*)&LocalIface,
-                   sizeof(LocalIface)) < 0) {
+    if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_IF, (char *)&LocalIface, sizeof(LocalIface)) <
+        0) {
         perror("setting local interface");
         exit(1);
     }
 
-    if (setsockopt(sockfd,
-                   SOL_SOCKET,
-                   SO_RCVTIMEO,
-                   (const char*)&time_val,
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&time_val,
                    sizeof(struct timeval)) < 0) {
         perror("setting socket timeout");
         exit(1);
     }
 
     socklen = sizeof(UsbipGroupSock);
-    sendto(
-      sockfd, &ack, strlen(ack), 0, (struct sockaddr*)&UsbipGroupSock, socklen);
+    sendto(sockfd, &ack, strlen(ack), 0, (struct sockaddr *)&UsbipGroupSock, socklen);
 
     close(sockfd);
 }
 
-int
-main(void)
+int main(void)
 {
-    struct udev* udev;
-    struct udev_device* dev;
-    struct udev_monitor* mon;
+    struct udev *udev;
+    struct udev_device *dev;
+    struct udev_monitor *mon;
 
     int fd;
 
@@ -128,7 +115,7 @@ main(void)
         struct timeval tv;
         int ret = 0;
 
-        const char* path;
+        const char *path;
 
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
