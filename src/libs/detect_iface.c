@@ -37,7 +37,8 @@ check_wireless(const char* ifname)
     struct iwreq pwrq;
 
     memset(&pwrq, 0, sizeof(pwrq));
-    strncpy(pwrq.ifr_name, ifname, IFNAMSIZ);
+    strncpy(pwrq.ifr_name, ifname, IFNAMSIZ - 1);
+    pwrq.ifr_name[IFNAMSIZ - 1] = '\0';
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("socket");
@@ -45,7 +46,8 @@ check_wireless(const char* ifname)
     }
 
     if (ioctl(sock, SIOCGIWNAME, &pwrq) != -1) {
-        strncpy(protocol, pwrq.u.name, IFNAMSIZ);
+        strncpy(protocol, pwrq.u.name, IFNAMSIZ - 1);
+        protocol[IFNAMSIZ - 1] = '\0';
         close(sock);
         return 1;
     }
@@ -74,7 +76,8 @@ find_wifi_interface(void)
         if (check_wireless(iter->ifa_name)) {
             ifa_name_len = strlen(iter->ifa_name) + 1;
             ret_iface = malloc(ifa_name_len * sizeof(char));
-            strncpy(ret_iface, iter->ifa_name, ifa_name_len);
+            strncpy(ret_iface, iter->ifa_name, ifa_name_len - 1);
+            ret_iface[ifa_name_len - 1] = '\0';
             break;
         }
     }
