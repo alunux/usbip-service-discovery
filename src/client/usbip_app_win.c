@@ -169,14 +169,17 @@ static const gchar *query_usb_id(json_object *root, const gchar *key)
     return NULL;
 }
 
-static void clear_list_dev(GtkWidget *row, gpointer data) { gtk_widget_destroy(row); }
+static void clear_list_dev(GtkWidget *row, __attribute__((unused)) gpointer data)
+{
+    gtk_widget_destroy(row);
+}
 
 static void refresh_list_thread(GTask *task, __attribute__((unused)) gpointer obj,
                                 __attribute__((unused)) gpointer data,
                                 __attribute__((unused)) GCancellable *cancel)
 {
     json_object *usb_list = discover_get_json();
-    g_task_return_pointer(task, usb_list, (GDestroyNotify)json_object_put);
+    g_task_return_pointer(task, usb_list, (void *)json_object_put);
 }
 
 static void set_dev_state(gpointer old, gpointer new)
@@ -220,7 +223,7 @@ static void usbip_app_win_refresh_list_done(GObject *app, GAsyncResult *res,
     json_object_object_foreach(usb_list, nodes, devices)
     {
         if (json_object_get_type(devices) == json_type_array) {
-            for (int i = 0; i < json_object_array_length(devices); i++) {
+            for (size_t i = 0; i < json_object_array_length(devices); i++) {
                 iter = json_object_array_get_idx(devices, i);
 
                 UsbDesc *dev = g_object_new(USB_TYPE_DESC, "name", query_usb_id(iter, "product"),

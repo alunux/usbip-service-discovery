@@ -68,8 +68,6 @@ static int discover_recv_connect(const char *node_addr)
 
 static json_object *discover_recv_usb_desc_json(const char node_addr[])
 {
-    struct timespec start, stop;
-
     static json_object *usb_json;
 
     int sockfd, n;
@@ -115,8 +113,6 @@ const char *discover_query_usb_desc(json_object *root, const char *key)
 
 json_object *discover_get_json(void)
 {
-    struct timespec start, stop;
-
     struct in_addr LocalIface;
     struct sockaddr_in NekoFiGroupSock;
     json_object *usb_json;
@@ -163,21 +159,13 @@ json_object *discover_get_json(void)
         goto complete;
     }
 
-    // printf("Uji kinerja pencarian perangkat penyedia\n");
     while (1) {
-        clock_gettime(CLOCK_REALTIME, &start);
         status = recvfrom(sockfd, NULL, 0, 0, (struct sockaddr *)&NekoFiGroupSock, &socklen);
-        clock_gettime(CLOCK_REALTIME, &stop);
 
         if (status < 0) {
             close(sockfd);
             break;
         }
-
-        double result = (stop.tv_sec - start.tv_sec) * 1e3 +
-                        (stop.tv_nsec - start.tv_nsec) / 1e6; // in milidetik
-        // printf(
-        //   "%s: %f milidetik\n", inet_ntoa(NekoFiGroupSock.sin_addr), result);
 
         if (pipe(fd[n_node]) != 0) {
             printf("Could not create new pipe %d", n_node);
@@ -213,7 +201,6 @@ json_object *discover_get_json(void)
         n_node++;
     }
 
-    clock_gettime(CLOCK_REALTIME, &start);
     json_object *add_usb_tolist;
     if (n_node > 0) {
         for (int i = 0; i < n_node; i++) {
@@ -223,16 +210,7 @@ json_object *discover_get_json(void)
 
             json_object_object_add(usb_json, node_addr[i], add_usb_tolist);
         }
-
-        // g_print("%s\n",
-        //        json_object_to_json_string_ext(
-        //          usb_json, JSON_C_TO_STRING_SPACED |
-        //          JSON_C_TO_STRING_PRETTY));
     }
-    clock_gettime(CLOCK_REALTIME, &stop);
-    double result =
-        (stop.tv_sec - start.tv_sec) * 1e3 + (stop.tv_nsec - start.tv_nsec) / 1e6; // in milidetik
-    g_print("%f milidetik\n", result);
 
 complete:
     return usb_json;
