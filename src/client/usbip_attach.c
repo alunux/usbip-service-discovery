@@ -123,6 +123,7 @@ static int query_import_device(int sockfd, const char *busid)
     struct op_import_request request;
     struct op_import_reply reply;
     uint16_t code = OP_REP_IMPORT;
+    int status;
 
     memset(&request, 0, sizeof(request));
     memset(&reply, 0, sizeof(reply));
@@ -145,9 +146,9 @@ static int query_import_device(int sockfd, const char *busid)
     }
 
     /* receive a reply */
-    rc = usbip_net_recv_op_common(sockfd, &code);
+    rc = usbip_net_recv_op_common(sockfd, &code, &status);
     if (rc < 0) {
-        err("recv op_common");
+        err("Attach Request for %s failed - %s\n", busid, usbip_op_common_status_string(status));
         return -1;
     }
 
@@ -174,9 +175,12 @@ int check_device_state(const char *host, const char *busid)
     int sockfd;
     int rc;
     struct op_import_request request;
+    struct op_import_reply reply;
     uint16_t code = OP_REP_IMPORT;
+    int status;
 
     memset(&request, 0, sizeof(request));
+    memset(&reply, 0, sizeof(reply));
 
     sockfd = usbip_net_tcp_connect(host, usbip_port_string);
     if (sockfd < 0) {
@@ -184,6 +188,7 @@ int check_device_state(const char *host, const char *busid)
         return -1;
     }
 
+    /* send a request */
     rc = usbip_net_send_op_common(sockfd, OP_REQ_IMPORT, 0);
     if (rc < 0) {
         err("send op_common");
@@ -200,9 +205,10 @@ int check_device_state(const char *host, const char *busid)
         return -1;
     }
 
-    rc = usbip_net_recv_op_common(sockfd, &code);
+    /* receive a reply */
+    rc = usbip_net_recv_op_common(sockfd, &code, &status);
     if (rc < 0) {
-        err("recv op_common");
+        err("Attach Request for %s failed - %s\n", busid, usbip_op_common_status_string(status));
         return -1;
     }
 
@@ -229,9 +235,6 @@ int attach_device(const char *host, const char *busid)
     }
 
     close(sockfd);
-
-    printf("host: %s, usbip_port_string: %s, busid: %s, rhport: %d\n", host, usbip_port_string,
-           busid, rhport);
 
     rc = record_connection(host, usbip_port_string, busid, rhport);
     if (rc < 0) {

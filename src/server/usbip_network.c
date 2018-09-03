@@ -122,6 +122,7 @@ static ssize_t usbip_net_xmit(int sockfd, void *buff, size_t bufflen, int sendin
         buff = (void *)((intptr_t)buff + nbytes);
         bufflen -= nbytes;
         total += nbytes;
+
     } while (bufflen > 0);
 
     return total;
@@ -144,7 +145,7 @@ int usbip_net_send_op_common(int sockfd, uint32_t code, uint32_t status)
 
     memset(&op_common, 0, sizeof(op_common));
 
-    op_common.version = 0x00000111;
+    op_common.version = USBIP_VERSION;
     op_common.code = code;
     op_common.status = status;
 
@@ -159,7 +160,7 @@ int usbip_net_send_op_common(int sockfd, uint32_t code, uint32_t status)
     return 0;
 }
 
-int usbip_net_recv_op_common(int sockfd, uint16_t *code)
+int usbip_net_recv_op_common(int sockfd, uint16_t *code, int *status)
 {
     struct op_common op_common;
     int rc;
@@ -174,8 +175,8 @@ int usbip_net_recv_op_common(int sockfd, uint16_t *code)
 
     PACK_OP_COMMON(0, &op_common);
 
-    if (op_common.version != 0x00000111) {
-        dbg("version mismatch: %d %d", op_common.version, 0x00000111);
+    if (op_common.version != USBIP_VERSION) {
+        err("USBIP Kernel and tool version mismatch: %d %d:", op_common.version, USBIP_VERSION);
         goto err;
     }
 
@@ -185,9 +186,13 @@ int usbip_net_recv_op_common(int sockfd, uint16_t *code)
     default:
         if (op_common.code != *code) {
             dbg("unexpected pdu %#0x for %#0x", op_common.code, *code);
+            /* return error status */
+            *status = ST_ERROR;
             goto err;
         }
     }
+
+    *status = op_common.status;
 
     if (op_common.status != ST_OK) {
         dbg("request failed at peer: %d", op_common.status);

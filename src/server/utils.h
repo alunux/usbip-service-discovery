@@ -16,9 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef __UTILS_H
+#define __UTILS_H
 
-int modify_match_busid(const char *busid, int add);
+int modify_match_busid(char *busid, int add);
 
-#endif /* UTILS_H */
+#endif /* __UTILS_H */

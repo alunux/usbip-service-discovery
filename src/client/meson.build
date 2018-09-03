@@ -51,7 +51,10 @@ executable(
     'usbip-app-client', frontend_src,
     c_args: frontend_cflags,
     dependencies: frontend_requires,
-    include_directories: include_directories(extra_inc),
+    include_directories: [
+        top_inc,
+        include_directories(extra_inc),
+    ],
     link_with: usbip,
     install : true,
 )

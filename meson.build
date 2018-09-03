@@ -27,7 +27,12 @@ cc = meson.get_compiler('c')
 cdata = configuration_data()
 
 cdata.set('USBIP_VERSION', '0x00000111')
+cdata.set_quoted('PACKAGE', 'usbip-utils')
+cdata.set_quoted('PACKAGE_STRING', 'usbip-utils 2.0')
+cdata.set_quoted('PACKAGE_TARNAME', 'usbip-utils')
+cdata.set_quoted('PACKAGE_URL', '')
 cdata.set_quoted('PACKAGE_VERSION', meson.project_version())
+cdata.set_quoted('VERSION', meson.project_version())
 
 check_headers = [
     ['HAVE_ARPA_INET_H', 'arpa/inet.h'],

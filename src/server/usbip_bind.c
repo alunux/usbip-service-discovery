@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2017 La Ode Muh. Fadlun Akbar <fadlun.net@gmail.com>
- *               2011 matt mooney <mfm@muteddisk.com>
+ * Copyright (C) 2011 matt mooney <mfm@muteddisk.com>
  *               2005-2007 Takahiro Hirofuchi
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,7 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <errno.h>
 #include <libudev.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,6 +122,7 @@ int bind_device(const char *busid)
     int rc;
     struct udev *udev;
     struct udev_device *dev;
+    const char *devpath;
 
     /* Check whether the device with this bus ID exists. */
     udev = udev_new();
@@ -132,7 +131,14 @@ int bind_device(const char *busid)
         err("device with the specified bus ID does not exist");
         return -1;
     }
+    devpath = udev_device_get_devpath(dev);
     udev_unref(udev);
+
+    /* If the device is already attached to vhci_hcd - bail out */
+    if (strstr(devpath, USBIP_VHCI_DRV_NAME)) {
+        err("bind loop detected: device: %s is attached to %s\n", devpath, USBIP_VHCI_DRV_NAME);
+        return -1;
+    }
 
     rc = unbind_other(busid);
     if (rc == UNBIND_ST_FAILED) {

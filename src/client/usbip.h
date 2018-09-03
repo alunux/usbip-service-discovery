@@ -20,9 +20,7 @@
 #ifndef USBIP_H
 #define USBIP_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config.h>
 
 /* usbip commands */
 int attach_device(const char *host, const char *busid);
