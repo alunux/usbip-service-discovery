@@ -15,13 +15,6 @@ am_cppflags = [
     '-DUSBIDS_FILE="/usr/share/hwdata/usb.ids"'
 ]
 
-am_cflags = [
-    '-Wall',
-    '-Wextra',
-    '-Werror',
-]
-
-add_global_arguments(am_cflags, language: 'c')
 add_global_arguments(am_cppflags, language: 'c')
 
 cc = meson.get_compiler('c')

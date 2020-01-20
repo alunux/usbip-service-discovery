@@ -14,6 +14,18 @@ It's still under development, nothing is useful here.
 - gtk+-3.0 >= 3.18.0
 - json-c >= 0.11
 
+### Building
+#### Building the Client
+in the checkout run the following sequence
+`meson build-client`
+`ninja -C build-client install`
+
+#### Building the Server
+in the checkout run the following sequence
+`meson build-server`
+`ninja -C build-server install`
+
+
 ### Screenshot
 
 <p align=center>
